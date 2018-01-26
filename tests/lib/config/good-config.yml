@@ -1,0 +1,4 @@
+dns_resolver: 8.8.8.8
+
+plugins:
+    - test-plugin

@@ -1,0 +1,13 @@
+Changelog v0.1.0
+----------------
+Complete rewrite of Spaghetti for modularity and python 3.5 as a minimum requirement
+Adding:
+ - Frontend frameworks detection
+ - Content Delivery Networks detection
+ - Risk level for scans
+ - Plugins system for modularity
+ - Configuration file handling
+ - Adding unit testing
+
+Removing:
+ - Disclosure patterns: Credit Card / IP / Email

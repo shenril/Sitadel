@@ -1,0 +1,19 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7-dev"  # 3.7 development branch
+  - "nightly"
+
+# command to install dependencies and tests tooling
+install:
+  - pip install -e .[tests]
+
+# command to run tests
+script:
+  - make test
+
+#command to generate documentation
+#after_success:
+#  - make doc
+#  - make metrics

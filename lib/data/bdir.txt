@@ -1,0 +1,13 @@
+[name]~/
+[name].tar
+[name].zip
+[name].rar
+[name].old/
+[name].bak/
+[name].bac/
+[name].backup/
+[name]_old/
+[name]_bak/
+[name]_backup/
+[name]1/
+[name]2/

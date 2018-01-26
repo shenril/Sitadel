@@ -1,0 +1,11 @@
+[name].7z
+[name].rar
+[name].tar
+[name].zip
+[name].bak
+[name].old
+[name].backup
+[name]1
+[name]2
+[name].1
+[name].2

@@ -1,0 +1,14 @@
+/boot.ini
+\boot.ini
+/etc/passwd
+/../etc/passwd
+/../../etc/passwd
+/../../../../../etc/passwd
+../../../../../../etc/shadow
+/./././././././././././etc/passwd
+/./././././././././././etc/shadow
+/../../boot.ini
+/../../../../boot.ini
+\..\..\..\..\boot.ini
+/../boot.ini
+../boot.ini
