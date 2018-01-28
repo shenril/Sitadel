@@ -4,7 +4,7 @@
 Linguini is inspired by [Spaghetti](https://github.com/m4ll0k/Spaghetti)
 
 
-Lunguini is basically an update for Spaghetti making it compatible for python >= 3.4
+Linguini is basically an update for Spaghetti making it compatible for python >= 3.4
 It also makes the scans more flexible and allows to create your own modules quite simply
 
 ## Installation
