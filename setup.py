@@ -10,7 +10,8 @@ tests_require = [
 setup(
     name='Linguini',
     version=__version__,
-    packages=['lib.utils', 'lib.config', 'lib.modules', 'lib.modules.attacks', 'lib.modules.fingerprints'],
+    packages=['lib.utils', 'lib.config', 'lib.modules', 'lib.modules.attacks', 'lib.modules.fingerprints',
+              'lib.request'],
     url='https://github.com/shenril/Linguini',
     license='GNU GENERAL PUBLIC LICENSE Version 3',
     author='Shenril',

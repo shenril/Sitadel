@@ -3,6 +3,8 @@ import pytest
 from lib.config import settings
 from lib.config.settings import Risk
 from lib.modules.attacks import AttackPlugin, Attacks
+from lib.utils.container import Services
+from lib.utils.output import Output
 
 
 def test_attack_plugin():
@@ -12,7 +14,7 @@ def test_attack_plugin():
     assert hasattr(f, 'process')
 
     with pytest.raises(NotImplementedError):
-        f.process(output=None, datastore=None, request=None)
+        f.process(start_url=None, crawled_urls=None)
 
     assert f.__repr__() == "Modules"
 
@@ -23,7 +25,7 @@ def test_new_attack_plugin():
     class DangerousAttackPlugin(AttackPlugin):
         level = Risk.DANGEROUS
 
-        def process(self, output, datastore, request):
+        def process(self, start_url, crawled_urls):
             pass
 
     dangerous = DangerousAttackPlugin()
@@ -34,7 +36,7 @@ def test_new_attack_plugin():
     class GoodAttackPlugin(AttackPlugin):
         level = Risk.NO_DANGER
 
-        def process(self, output, datastore, request):
+        def process(self, start_url, crawled_urls):
             pass
 
     good = GoodAttackPlugin()
@@ -45,5 +47,8 @@ def test_new_attack_plugin():
 
 
 def test_attack_launcher():
-    f = Attacks(None, None, None, None, None, None, None, None)
+    # Add services container for running
+    Services.register("output", Output())
+
+    f = Attacks(None, None)
     assert hasattr(f, 'run')
