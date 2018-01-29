@@ -2,8 +2,6 @@ from lib.config import settings
 from lib.modules.attacks import Attacks
 from lib.modules.crawler.crawler import crawl
 from lib.modules.fingerprints import Fingerprints
-from lib.utils.datastore import Datastore
-from lib.utils.output import Output
 
 
 def fingerprints(modules, agent, proxy, redirect, timeout, url, cookie):

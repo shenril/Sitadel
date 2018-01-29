@@ -8,6 +8,7 @@ Adding:
  - Plugins system for modularity
  - Configuration file handling
  - Adding unit testing
+ - Dockerfile support to run
 
 Removing:
  - Disclosure patterns: Credit Card / IP / Email

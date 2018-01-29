@@ -9,7 +9,6 @@ from .. import AttackPlugin
 class Anonymous(AttackPlugin):
     def process(self, start_url, crawled_urls):
         output = Services.get('output')
-        request = Services.get('request_factory')
 
         output.test('Scanning anonymous cipher vuln...')
         ip = ''
