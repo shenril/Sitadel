@@ -77,6 +77,11 @@ Run specifics modules only and full verbosity
 
 `python linguini website.com -a admin backdoor -f header server -vvv`
 
+## Run with docker
+`docker build -t linguini .`
+
+`docker run linguini http://example.com`
+
 ## Credits
 A big thanks to Momo Outaadi(M4ll0k) for sharing his project [Spaghetti](https://github.com/m4ll0k/Spaghetti)
 
