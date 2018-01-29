@@ -1,5 +1,5 @@
 # Linguini - Web Application Security Scanner
- ![python3](https://img.shields.io/badge/python-3.6-green.svg) ![python2](https://img.shields.io/badge/python-2.7-red.svg) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
+ ![python3](https://img.shields.io/badge/python-3.6-green.svg) [![Build Status](https://travis-ci.org/shenril/Linguini.svg?branch=master)](https://travis-ci.org/shenril/Linguini) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
 
 Linguini is inspired by [Spaghetti](https://github.com/m4ll0k/Spaghetti)
 
