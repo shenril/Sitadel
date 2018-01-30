@@ -5,13 +5,19 @@ Linguini is inspired by [Spaghetti](https://github.com/m4ll0k/Spaghetti)
 
 
 Linguini is basically an update for Spaghetti making it compatible for python >= 3.4
-It also makes the scans more flexible and allows to create your own modules quite simply
+It allows more flexibility for you to write new modules and implement new features :
+- Frontend framework detection
+- Content Delivery Network detection
+- Define Risk Level to allow for scans
+- Plugin system
+- Docker image available to build and run
+
 
 ## Installation
 ```
 $ git clone https://github.com/shenril/Linguini.git
 $ cd Linguini
-$ python setup.py install
+$ pip install .
 $ python linguini.py --help
 ```
 
@@ -37,7 +43,7 @@ $ python linguini.py --help
     - Common Directory
     - Common File
     - Log File
-  
+
   - Injection
     - HTML Injection
     - SQL Injection
@@ -46,7 +52,7 @@ $ python linguini.py --help
     - Cross Site Scripting (XSS)
     - Remote File Inclusion (RFI)
     - PHP Code Injection
-    
+
   - Other
     - HTTP Allow Methods
     - HTML Object
@@ -56,7 +62,7 @@ $ python linguini.py --help
     - Cross Site Tracing (XST)
     - PHPINFO
     - .Listing
-    
+
   - Vulnerabilities
     - ShellShock
     - Anonymous Cipher (CVE-2007-1858)
@@ -67,16 +73,15 @@ $ python linguini.py --help
 ## Example
 Simple run
 
-`python linguini website.com `
+`python linguini http://website.com `
 
 Run with risk level at DANGEROUS and do not follow redirections
 
-`python linguini website.com -r 2 --no-redirect`
+`python linguini http://website.com -r 2 --no-redirect`
 
 Run specifics modules only and full verbosity
 
-`python linguini website.com -a admin backdoor -f header server -vvv`
+`python linguini http://website.com -a admin backdoor -f header server -vvv`
 
 ## Credits
 A big thanks to Momo Outaadi(M4ll0k) for sharing his project [Spaghetti](https://github.com/m4ll0k/Spaghetti)
-
