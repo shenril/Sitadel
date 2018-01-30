@@ -14,8 +14,7 @@ class Output:
             Output.e,
             Output.w,
             value,
-            Output.e)
-            , flush=True)
+            Output.e), flush=True)
 
     def error(self, value):
         print('{}[-]{} {}{}{}'.format(
@@ -23,8 +22,7 @@ class Output:
             Output.e,
             Output.w,
             value,
-            Output.e)
-            , flush=True)
+            Output.e), flush=True)
 
     def info(self, value):
         print('{}[i]{} {}{}{}'.format(
@@ -32,5 +30,4 @@ class Output:
             Output.e,
             Output.w,
             value,
-            Output.e)
-            , flush=True)
+            Output.e), flush=True)
