@@ -1,10 +1,7 @@
-# Linguini - Web Application Security Scanner
+# Sitadel - Web Application Security Scanner
  ![python3](https://img.shields.io/badge/python-3.6-green.svg) [![Build Status](https://travis-ci.org/shenril/Linguini.svg?branch=master)](https://travis-ci.org/shenril/Linguini) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
 
-Linguini is inspired by [Spaghetti](https://github.com/m4ll0k/Spaghetti)
-
-
-Linguini is basically an update for Spaghetti making it compatible for python >= 3.4
+Sitadel is basically an update for Spaghetti making it compatible for python >= 3.4
 It allows more flexibility for you to write new modules and implement new features :
 - Frontend framework detection
 - Content Delivery Network detection
@@ -15,10 +12,10 @@ It allows more flexibility for you to write new modules and implement new featur
 
 ## Installation
 ```
-$ git clone https://github.com/shenril/Linguini.git
-$ cd Linguini
+$ git clone https://github.com/shenril/Sitadel.git
+$ cd Sitadel
 $ pip install .
-$ python linguini.py --help
+$ python sitadel.py --help
 ```
 
 ## Features
@@ -73,20 +70,17 @@ $ python linguini.py --help
 ## Example
 Simple run
 
-`python linguini http://website.com `
+`python sitadel http://website.com `
 
 Run with risk level at DANGEROUS and do not follow redirections
 
-`python linguini http://website.com -r 2 --no-redirect`
+`python sitadel http://website.com -r 2 --no-redirect`
 
 Run specifics modules only and full verbosity
 
-`python linguini http://website.com -a admin backdoor -f header server -vvv`
+`python sitadel http://website.com -a admin backdoor -f header server -vvv`
 
 ## Run with docker
-`docker build -t linguini .`
+`docker build -t sitadel .`
 
-`docker run linguini http://example.com`
-
-## Credits
-A big thanks to Momo Outaadi(M4ll0k) for sharing his project [Spaghetti](https://github.com/m4ll0k/Spaghetti)
+`docker run sitadel http://example.com`

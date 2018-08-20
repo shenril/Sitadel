@@ -8,15 +8,15 @@ tests_require = [
 ]
 
 setup(
-    name='Linguini',
+    name='Sitadel',
     version=__version__,
     packages=['lib.utils', 'lib.config', 'lib.modules', 'lib.modules.attacks', 'lib.modules.fingerprints',
               'lib.request'],
-    url='https://github.com/shenril/Linguini',
+    url='https://github.com/shenril/Sitadel',
     license='GNU GENERAL PUBLIC LICENSE Version 3',
     author='Shenril',
     author_email='florent.batard@gmail.com',
-    description='Linguini Web Application Scanner',
+    description='Sitadel Web Application Scanner',
     python_requires=">=3.5",
     keywords='linguini, security, scanner, web, python3',
     classifiers=[

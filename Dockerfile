@@ -5,4 +5,4 @@ COPY . /usr/src/app
 
 RUN pip install .
 
-ENTRYPOINT ["python", "linguini.py"]
+ENTRYPOINT ["python", "sitadel.py"]
