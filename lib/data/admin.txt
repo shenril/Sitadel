@@ -45,7 +45,6 @@ users
 usuario
 usuarios
 webadmin
-wp-admin/install.php
 wp-admin
 wp-login.php
 ~admin
@@ -61,3 +60,9 @@ admin.thtml
 admin.rhtml
 xgadmin.asp
 pnadmin.php
+/crx/de/index.jsp
+/crx/explorer/index.jsp
+/crx/packmgr/service.jsp
+/libs/granite/security.3.json
+/system/console
+/libs/granite/backup/content/admin.html

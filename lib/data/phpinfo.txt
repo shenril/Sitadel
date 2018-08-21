@@ -4,6 +4,8 @@ PHPinfo.php
 PHPINFO.php
 phpInfo.php
 info.php
+Info.php
+INFO.php
 test.php?mode=phpinfo
 index.php?view=phpinfo
 index.php?mode=phpinfo
@@ -16,6 +18,8 @@ admin.php?mode=phpinfo
 phpversion.php
 phpVersion.php
 test1.php
+test.php
+test2.php
 phpinfo1.php
 phpInfo1.php
 info1.php

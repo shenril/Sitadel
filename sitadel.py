@@ -9,13 +9,12 @@
 import argparse
 import logging
 import sys
-from urllib.parse import urlparse
 
 from lib import __version__
 from lib.config import settings
 from lib.config.settings import Risk
 from lib.request.request import Request
-from lib.utils import banner, manager, output
+from lib.utils import banner, manager, output, validator
 from lib.utils.container import Services
 from lib.utils.datastore import Datastore
 from lib.utils.output import Output
@@ -55,7 +54,7 @@ class Sitadel(object):
         args = parser.parse_args()
 
         # Verify the target URL
-        self.url = self.target(args.url)
+        self.url = validator.validate_target(args.url)
 
         # Reading configuration
         settings.from_yaml(args.config)
@@ -64,7 +63,7 @@ class Sitadel(object):
 
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
-        Services.register("logger", logging.getLogger("linguiniLog"))
+        Services.register("logger", logging.getLogger("sitadelLog"))
         Services.register("output", Output())
         Services.register("request_factory",
                           Request(url=self.url, agent=args.user_agent, proxy=args.proxy, redirect=args.redirect,
@@ -81,22 +80,12 @@ class Sitadel(object):
                              args.timeout,
                              self.url,
                              args.cookie)
+
         # Run the crawler to discover urls
         discovered_urls = self.ma.crawler(self.url, args.user_agent)
 
-        # Run the attack modules
+        # Run the attack modules on discovered urls
         self.ma.attacks(args.attack, self.url, discovered_urls)
-
-    def target(self, url):
-        try:
-            u = urlparse(url)
-            if u.scheme and u.netloc:
-                return u.geturl()
-            else:
-                raise ValueError('Url not valid, please try with a valid target url!')
-        except ValueError as e:
-            print(e)
-            sys.exit(2)
 
 
 if __name__ == "__main__":

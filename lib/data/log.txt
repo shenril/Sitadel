@@ -27,6 +27,8 @@ logo.xcf
 logo.tpl
 log.tmpl
 debug.log
+dev.log
+production.log
 blog.info
 error.log
 .gwt-logs

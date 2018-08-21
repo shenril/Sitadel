@@ -23,6 +23,7 @@ fingerprint_plugins:
     - lang
     - server
     - waf
+
 ## List of attacks plugins activated
 attack_plugins:
     - bruteforce
