@@ -11,8 +11,8 @@ from lib.utils.container import Services
 urls = []
 
 
-class LinguiniSpider(CrawlSpider):
-    name = "linguini"
+class SitadelSpider(CrawlSpider):
+    name = "sitadel"
 
     rules = [
         Rule(
@@ -51,7 +51,7 @@ def crawl(url, user_agent):
     output.info('Start crawling the target website')
     process = CrawlerProcess(settings)
     domain = urlparse(url).hostname
-    process.crawl(LinguiniSpider, start_urls=[str(url)], allowed_domains=[str(domain)])
+    process.crawl(SitadelSpider, start_urls=[str(url)], allowed_domains=[str(domain)])
     process.start()
 
     # Clean the results

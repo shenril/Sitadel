@@ -23,6 +23,7 @@ class Banner:
         print(self.g + "~/#" + self.e + " Sitadel - Web Application Security Scanner" + self.g + " #\\~" + self.e)
         print(self.g + "~/#" + self.e + " Shenril (@shenril)" + self.g +  " #\\~" + self.e)
         print(self.g + "~/#" + self.e + " https://github.com/shenril/Sitadel" + self.g + " #\\~" + self.e)
+        print("\n\n")
 
     def preamble(self, url):
         print('URL: %s' % url)

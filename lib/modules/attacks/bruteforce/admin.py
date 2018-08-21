@@ -29,4 +29,4 @@ class Admin(AttackPlugin):
                         if resp.url == url.replace(' ', '%20'):
                             output.finding('Found admin panel at %s' % resp.url)
             except Exception as e:
-                raise (e)
+                print(e)
