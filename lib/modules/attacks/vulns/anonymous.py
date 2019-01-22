@@ -10,7 +10,7 @@ class Anonymous(AttackPlugin):
     def process(self, start_url, crawled_urls):
         output = Services.get('output')
 
-        output.test('Scanning anonymous cipher vuln...')
+        output.info('Scanning anonymous cipher vuln...')
         ip = ''
         port = '443'
         try:

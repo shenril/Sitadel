@@ -9,7 +9,7 @@ class Shellshock(AttackPlugin):
         output = Services.get('output')
         request = Services.get('request_factory')
 
-        output.test('Scanning shellshock vuln..')
+        output.info('Scanning shellshock vuln..')
         try:
             resp = request.send(
                 url=start_url,
