@@ -1,5 +1,5 @@
 # Sitadel - Web Application Security Scanner
- ![python3](https://img.shields.io/badge/python-3.6-green.svg) [![Build Status](https://travis-ci.org/shenril/Linguini.svg?branch=master)](https://travis-ci.org/shenril/Linguini) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
+ ![python3](https://img.shields.io/badge/python-3.6-green.svg) [![Build Status](https://travis-ci.org/shenril/Sitadel.svg?branch=master)](https://travis-ci.org/shenril/Sitadel) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
 
 Sitadel is basically an update for WAScan making it compatible for python >= 3.4
 It allows more flexibility for you to write new modules and implement new features :
