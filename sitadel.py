@@ -34,7 +34,7 @@ class Sitadel(object):
         parser.add_argument("url", help="URL of the website to scan")
         parser.add_argument("-r", "--risk", type=int, help="Level of risk allowed for the scan",
                             choices=risk_values)
-        parser.add_argument("-ua", "--user-agent", default="Linguini " + __version__,
+        parser.add_argument("-ua", "--user-agent", default="Sitadel " + __version__,
                             help="User-agent to set for the scan requests")
         parser.add_argument("--redirect", dest='redirect',
                             help="Whether or not the scan should follow redirection",

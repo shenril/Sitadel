@@ -25,10 +25,6 @@ class SitadelSpider(CrawlSpider):
         )
     ]
 
-    def start_requests(self):
-        for url in self.start_urls:
-            yield scrapy.Request(url, callback=self.parse, dont_filter=True)
-
     # Method for parsing items
     def parse_items(self, response):
         links = LinkExtractor(canonicalize=True, unique=True).extract_links(response)
