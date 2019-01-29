@@ -17,10 +17,10 @@ class Anonymous(AttackPlugin):
             ip += socket.gethostbyname(urlparse(start_url).hostname)
             socket.inet_aton(ip)
             r = subprocess.Popen(
-                ['timeout', '4', 'openssl', 's_client', '-connect', ip + ":" + str(port), "-cipher", "aNULL"],
+                ['openssl', 's_client', '-connect', ip + ":" + str(port), "-cipher", "aNULL"],
                 stderr=subprocess.STDOUT,
                 stdout=subprocess.PIPE).communicate()[0]
-            if 'handshake failure' not in r:
+            if 'handshake failure' not in str(r):
                 output.finding('That site is vulnerable to Anonymous Cipher, CVE-2007-1858.')
         except Exception as e:
             print(e)

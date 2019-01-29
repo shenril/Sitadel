@@ -20,7 +20,7 @@ class Robots(AttackPlugin):
                 headers=None
             )
             if resp.url == url:
-                paths = re.findall(r'\ (/\S*)', resp.content)
+                paths = re.findall(r'\ (/\S*)', str(resp.content))
                 if len(paths):
                     for path in paths:
                         if path.startswith('/'):

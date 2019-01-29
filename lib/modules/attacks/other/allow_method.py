@@ -15,7 +15,7 @@ class AllowMethod(AttackPlugin):
         dbfiles = [x.split('\n') for x in db]
         try:
             for method in dbfiles:
-                resp = request.send(url=start_url, method=method, payload=None, headers=None)
+                resp = request.send(url=start_url, method=str(method[0]), payload=None, headers=None)
                 if re.search(r'allow|public', str(resp.headers.keys()), re.I):
                     allow = resp.headers['allow']
                     if allow is None:

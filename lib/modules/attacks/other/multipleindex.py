@@ -15,7 +15,7 @@ class MultipleIndex(AttackPlugin):
         dbfiles = [x.split('\n') for x in db]
         try:
             for d in dbfiles:
-                url = urljoin(start_url, d)
+                url = urljoin(start_url, str(d[0]))
                 resp = request.send(
                     url=url,
                     method="GET",

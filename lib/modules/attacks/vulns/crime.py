@@ -17,10 +17,10 @@ class Crime(AttackPlugin):
             ip += socket.gethostbyname(urlparse(start_url).hostname)
             socket.inet_aton(ip)
             r = subprocess.Popen(
-                ['timeout', '4', 'openssl', 's_client', '-connect', ip + ":" + str(port), "-nextprotoneg", "NULL"],
+                ['openssl', 's_client', '-connect', ip + ":" + port, "-nextprotoneg", "NULL"],
                 stderr=subprocess.STDOUT,
                 stdout=subprocess.PIPE).communicate()[0]
-            if 'Protocols advertised by server' not in r:
+            if 'Protocols advertised by server' not in str(r):
                 output.finding('That site is vulnerable to CRIME (SPDY), CVE-2012-4929.')
         except Exception as e:
             print(e)

@@ -18,7 +18,7 @@ class Shellshock(AttackPlugin):
                 headers=None
             )
             if resp.status_code == 200:
-                if re.search(r'*?/bin/bash', resp.content, re.I):
+                if re.search(r'.*/bin/bash', str(resp.content), re.I):
                     output.finding('That site is my be vulnerable to Shellshock.')
         except Exception as e:
             print(e)
