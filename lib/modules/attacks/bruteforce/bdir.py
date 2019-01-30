@@ -15,11 +15,11 @@ class Bdir(AttackPlugin):
         db = datastore.open('bdir.txt', 'r')
         dbfiles = [x for x in db.readlines()]
         db1 = datastore.open('cdir.txt', 'r')
-        dbfiles1 = [x for x in db1.readline()]
+        dbfiles1 = [x for x in db1.readlines()]
         try:
             for b in dbfiles:
                 for d in dbfiles1:
-                    bdir = b[0].replace('[name]', d[0])
+                    bdir = b.replace('[name]', d.strip())
                     url = urljoin(start_url, bdir)
                     resp = request.send(
                         url=url,
@@ -29,6 +29,6 @@ class Bdir(AttackPlugin):
                     )
                     if resp.status_code == 200:
                         if resp.url == url.replace(' ', '%20'):
-                            output.finding('Found directory "%s" Backup at %s' % (d[0], resp.url))
+                            output.finding('Found directory "%s" Backup at %s' % (d.strip(), resp.url))
         except Exception as e:
             print(e)

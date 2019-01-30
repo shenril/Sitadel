@@ -12,11 +12,11 @@ class Log(AttackPlugin):
         request = Services.get('request_factory')
 
         output.info('Checking common log files..')
-        with datastore.open('log.txt', 'rb') as db:
+        with datastore.open('log.txt', 'r') as db:
             dbfiles = [x.strip() for x in db]
             try:
                 for d in dbfiles:
-                    url = urljoin(start_url, str(d[0]))
+                    url = urljoin(start_url, d)
                     resp = request.send(
                         url=url,
                         method="GET",

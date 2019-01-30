@@ -18,7 +18,7 @@ class Bfile(AttackPlugin):
         try:
             for b in dbfiles:
                 for d in dbfiles1:
-                    bdir = b[0].replace('[name]', d[0])
+                    bdir = b.replace('[name]', d.strip())
                     url = urljoin(start_url, bdir)
                     resp = request.send(
                         url=url,
@@ -28,6 +28,6 @@ class Bfile(AttackPlugin):
                     )
                     if resp.status_code == 200:
                         if resp.url == url.replace(' ', '%20'):
-                            output.finding('Found file "%s" Backup at %s' % (d[0], resp.url))
+                            output.finding('Found file "%s" Backup at %s' % (d.strip(), resp.url))
         except Exception as e:
             print(e)

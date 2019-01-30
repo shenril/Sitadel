@@ -17,8 +17,8 @@ class Admin(AttackPlugin):
         with datastore.open('admin.txt', 'r') as db:
             dbfiles = [x.strip() for x in db.readlines()]
             try:
-                for payload in dbfiles:
-                    url = urljoin(str(start_url), str(payload))
+                for adminpath in dbfiles:
+                    url = urljoin(str(start_url), str(adminpath))
                     resp = request.send(
                         url=url,
                         method="HEAD",

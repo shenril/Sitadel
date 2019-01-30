@@ -31,7 +31,7 @@ class Request:
             headers['User-Agent'] = self.agent
         # requests session
         request = requests.Session()
-        req = urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         # get method
         if method.upper() == "GET":
             req = request.request(

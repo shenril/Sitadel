@@ -14,8 +14,8 @@ class Backdoor(AttackPlugin):
         with datastore.open('backdoor.txt', 'r') as db:
             dbfiles = [x.strip() for x in db.readlines()]
             try:
-                for payload in dbfiles:
-                    url = urljoin(start_url, payload[0])
+                for backdoorpath in dbfiles:
+                    url = urljoin(start_url, backdoorpath)
                     resp = request.send(
                         url=url,
                         method="HEAD",

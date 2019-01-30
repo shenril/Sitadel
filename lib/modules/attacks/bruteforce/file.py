@@ -15,7 +15,7 @@ class File(AttackPlugin):
             dbfiles = [x.strip() for x in db.readlines()]
             try:
                 for d in dbfiles:
-                    url = urljoin(start_url, str(d[0]))
+                    url = urljoin(start_url,d)
                     resp = request.send(
                         url=url,
                         method="GET",
@@ -24,6 +24,6 @@ class File(AttackPlugin):
                     )
                     if resp.status_code == 200:
                         if resp.url == url.replace(' ', '%20'):
-                            output.finding('Found "%s" file at %s' % (d[0], resp.url))
+                            output.finding('Found "%s" file at %s' % (d, resp.url))
             except Exception as e:
                 print(e)
