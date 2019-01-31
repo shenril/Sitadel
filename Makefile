@@ -7,4 +7,4 @@ clean:
 	find . -name '*~' -exec rm -f  {} +
 
 lint:
-	@flake8 --ignore=E501 .
+	@flake8 --ignore=E501 --show-source --statistics .
