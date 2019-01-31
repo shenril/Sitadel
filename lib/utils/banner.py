@@ -21,7 +21,7 @@ class Banner:
         print(self.ny + "  |   |_|   |      _____) ) | | |_/ ___ ( (_| | ____| | " + self.e)
         print(self.ny + "  |         |     (______/|_|  \__)_____|\____|_____)\_)" + self.r + " " + version + "\n" + self.e)
         print(self.g + "~/#" + self.e + " Sitadel - Web Application Security Scanner" + self.g + " #\\~" + self.e)
-        print(self.g + "~/#" + self.e + " Shenril (@shenril)" + self.g +  " #\\~" + self.e)
+        print(self.g + "~/#" + self.e + " Shenril (@shenril)" + self.g + " #\\~" + self.e)
         print(self.g + "~/#" + self.e + " https://github.com/shenril/Sitadel" + self.g + " #\\~" + self.e)
         print("\n\n")
 

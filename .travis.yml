@@ -10,6 +10,7 @@ install:
 # command to run tests
 script:
   - make test
+  - make criticalint
 
 #command to generate documentation
 #after_success:

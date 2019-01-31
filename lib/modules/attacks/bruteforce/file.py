@@ -15,7 +15,7 @@ class File(AttackPlugin):
             dbfiles = [x.strip() for x in db.readlines()]
             try:
                 for d in dbfiles:
-                    url = urljoin(start_url,d)
+                    url = urljoin(start_url, d)
                     resp = request.send(
                         url=url,
                         method="GET",
