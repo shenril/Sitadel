@@ -30,6 +30,7 @@ amministratore
 administrator
 adminlogon
 authadmin
+actuator
 backend
 console
 fpadmin
