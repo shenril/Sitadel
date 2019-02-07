@@ -65,4 +65,4 @@ def test_current_plugins():
     Services.register("output", Output())
     Services.register("request_factory",Request(url=test_url, agent="Sitadel"))
     plugins = settings.attack_plugins
-    Attacks(test_url, None).run(plugins)
+    Attacks(test_url, [test_url]).run(plugins)

@@ -16,10 +16,10 @@ class XST(AttackPlugin):
                 method="TRACE",
                 payload=None,
                 headers={
-                    'Linguini': 'PastaXST',
+                    'Sitadel': 'PastaXST',
                 }
             )
-            if re.search('Linguini: *?PastaXST', str(resp.content), re.I):
+            if re.search('Sitadel: *?PastaXST', str(resp.content), re.I):
                 output.finding('That site is may be vulnerable to Cross Site Tracing (XST) vulnerability.')
         except Exception as e:
             print(e)
