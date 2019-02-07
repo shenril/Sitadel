@@ -80,7 +80,6 @@ class Headers(FingerprintPlugin):
                   'X-Content-Security-Policy',
                   'X-WebKit-CSP',
                   'X-Content-Type-Options',
-                  'X-Powered-By',
                   'Keep-Alive',
                   'Content-language',
                   'X-UA-Compatible'
