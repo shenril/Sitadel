@@ -1,8 +1,13 @@
 import pytest
+import logging
 
 from lib.config import settings
 from lib.config.settings import Risk
 from lib.modules.fingerprints import FingerprintPlugin, Fingerprints
+from lib.utils.container import Services
+from lib.utils.output import Output
+from lib.utils.datastore import Datastore
+from lib.request.request import Request
 
 
 def test_fingerprint_plugin():
@@ -47,3 +52,13 @@ def test_new_fingerprint_plugin():
 def test_fingerprint_launcher():
     f = Fingerprints(None, None, None, None, None, None)
     assert hasattr(f, 'run')
+
+@pytest.mark.dangerous
+def test_current_plugins():
+    test_url="http://example.com"
+    settings.from_yaml("tests/lib/config/test_fingerprint_config.yml")
+    Services.register("logger", logging.getLogger("sitadelLog"))
+    Services.register("output", Output())
+    Services.register("request_factory",Request(url=test_url, agent="Sitadel"))
+    plugins = settings.fingerprint_plugins
+    Fingerprints(agent="Sitadel",proxy=None,redirect=None,timeout=None,url=test_url,cookie=None).run(plugins)

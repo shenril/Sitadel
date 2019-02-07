@@ -1,0 +1,22 @@
+## Risk level allowed for the scan
+## Most attacks plugin are registered as noisy
+## Values are:
+##             - 0 : NO DANGER
+##             - 1 : NOISY
+##             - 2 : DANGEROUS
+risk: 1
+
+## DNS Server used to perform CDN verification
+## Default is Google DNS
+dns_resolver: 8.8.8.8
+    
+## List of fingerprint plugins activated
+fingerprint_plugins:
+    - cms
+    - system
+    - framework
+    - frontend
+    - header
+    - lang
+    - server
+    - waf

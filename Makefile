@@ -1,4 +1,7 @@
 test: clean
+	@python -m pytest tests -m "not dangerous"
+
+full_test: clean
 	@python -m pytest tests
 
 clean:
