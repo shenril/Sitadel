@@ -34,7 +34,7 @@ class Rfi(AttackPlugin):
                             payload=None,
                             headers=None
                         )
-                        if re.search(pl, resp.content):
+                        if re.search(pl, str(resp.content)):
                             output.finding(
                                 'That site is may be vulnerable to Remote File Inclusion (RFI) at %s' % url)
         except Exception as e:

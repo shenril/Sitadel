@@ -61,7 +61,8 @@ class Sql(AttackPlugin):
                             payload=None,
                             headers=None
                         )
-                        erro = self.dberror(resp.content)
+                        erro = self.dberror(str(resp.content)
+                        
                         if erro is not None:
                             output.finding('That site is may be vulnerable to %s at %s' % (erro, url))
         except Exception as e:

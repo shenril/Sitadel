@@ -29,8 +29,8 @@ class LDAP(AttackPlugin):
             "The search filter cannot be recognized",
             "IPWorksASP.LDAP"
         )
-        for erro in error:
-            if re.search(erro, data):
+        for err in error:
+            if re.search(err, data):
                 return "LDAP Injection"
 
     def process(self, start_url, crawled_urls):
@@ -40,7 +40,7 @@ class LDAP(AttackPlugin):
 
         output.info('Checking ldap injection...')
         db = datastore.open('ldap.txt', 'r')
-        dbfiles = [x.split('\n') for x in db]
+        dbfiles = [x.strip() for x in db]
         try:
             for payload in dbfiles:
                 for url in crawled_urls:
@@ -58,7 +58,7 @@ class LDAP(AttackPlugin):
                             payload=None,
                             headers=None
                         )
-                        if self.errors(resp.content):
+                        if self.errors(str(resp.content)):
                             output.finding('That site is may be vulnerable to LDAP Injection at %s' % url)
 
         except Exception as e:
