@@ -13,7 +13,7 @@ class Dir(AttackPlugin):
 
         output.info('Checking common dirs..')
         with datastore.open('cdir.txt', 'r') as db:
-            dbfiles = [x.strip() for x in db]
+            dbfiles = [x.strip() for x in db.readlines()]
             try:
                 for d in dbfiles:
                     url = urljoin(start_url, d)

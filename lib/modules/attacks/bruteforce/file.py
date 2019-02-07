@@ -12,7 +12,7 @@ class File(AttackPlugin):
 
         output.info('Checking common files...')
         with datastore.open('cfile.txt', 'r') as db:
-            dbfiles = [x.strip() for x in db]
+            dbfiles = [x.strip() for x in db.readlines()]
             try:
                 for d in dbfiles:
                     url = urljoin(start_url, d)
