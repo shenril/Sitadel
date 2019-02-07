@@ -16,3 +16,6 @@ datastore: lib/data
 ## List of attacks plugins activated
 attack_plugins:
     - bruteforce
+    - injection
+    - vulns
+    - other
