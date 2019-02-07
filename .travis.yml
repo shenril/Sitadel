@@ -4,7 +4,7 @@ services:
 language: python
 python:
   - "3.5"
-  - "3.6"
+  - "3.6.6"
 
 # Test website to run attack
 before_install:
