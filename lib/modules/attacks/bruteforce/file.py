@@ -11,8 +11,8 @@ class File(AttackPlugin):
         request = Services.get('request_factory')
 
         output.info('Checking common files...')
-        with datastore.open('cfile.txt', 'rb') as db:
-            dbfiles = [x.strip() for x in db.readlines()]
+        with datastore.open('cfile.txt', 'r') as db:
+            dbfiles = [x.strip() for x in db]
             try:
                 for d in dbfiles:
                     url = urljoin(start_url, d)

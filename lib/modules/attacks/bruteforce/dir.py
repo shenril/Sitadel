@@ -25,7 +25,7 @@ class Dir(AttackPlugin):
                     )
                     if resp.status_code == 200:
                         if resp.url == url.replace(' ', '%20'):
-                            output.finding('Found "%s" directory at %s' % (d[0], resp.url))
+                            output.finding('Found "%s" directory at %s' % (d, resp.url))
                             if re.search(
                                     r'Index Of|<a href="?C=N;O=D">Name</a>|<A HREF="?M=A">Last modified</A>|Parent Directory</a>|<TITLE>Folder Listing.|<<table summary="Directory Listing"',
                                     str(resp.content), re.I):

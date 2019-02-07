@@ -2,7 +2,7 @@ test: clean
 	@python -m pytest tests -m "not dangerous"
 
 full_test: clean
-	@python -m pytest tests -s
+	@python -m pytest tests -s -W error
 
 clean:
 	find . -name '*.pyc' -exec rm -f {} +
