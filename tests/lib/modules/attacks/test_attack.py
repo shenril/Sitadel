@@ -58,7 +58,7 @@ def test_attack_launcher():
 
 @pytest.mark.dangerous
 def test_current_plugins():
-    test_url="http://example.com"
+    test_url="http://localhost"
     settings.from_yaml("tests/lib/config/test_attack_config.yml")
     Services.register("datastore", Datastore(settings.datastore))
     Services.register("logger", logging.getLogger("sitadelLog"))

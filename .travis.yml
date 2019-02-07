@@ -1,7 +1,14 @@
+services:
+  - docker
+
 language: python
 python:
   - "3.5"
   - "3.6.6"
+
+# Test website to run attack
+before_install:
+  - docker run -d --rm -p 80:3000 bkimminich/juice-shop
 
 # command to install dependencies and tests tooling
 install:
@@ -9,7 +16,7 @@ install:
 
 # command to run tests
 script:
-  - make test
+  - make full_test
   - make criticalint
 
 #command to generate documentation

@@ -13,7 +13,7 @@ class Log(AttackPlugin):
 
         output.info('Checking common log files..')
         with datastore.open('log.txt', 'r') as db:
-            dbfiles = [x.strip() for x in db]
+            dbfiles = [x.strip() for x in db.readlines()]
             try:
                 for d in dbfiles:
                     url = urljoin(start_url, d)
