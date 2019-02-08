@@ -1,5 +1,0 @@
-requests
-urllib3
-pyyaml
-colorama
-scrapy
