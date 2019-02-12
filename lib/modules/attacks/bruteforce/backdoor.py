@@ -26,4 +26,5 @@ class Backdoor(AttackPlugin):
                         if resp.url == url.replace(' ', '%20'):
                             output.finding('Found Backdoor at %s' % resp.url)
             except Exception as e:
-                print(e)
+                output.error("Error occured\nAborting this attack...\n")
+                return

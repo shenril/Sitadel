@@ -12,6 +12,7 @@ class Admin(AttackPlugin):
         output = Services.get('output')
         datastore = Services.get('datastore')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Checking admin interfaces...')
         with datastore.open('admin.txt', 'r') as db:
@@ -28,5 +29,6 @@ class Admin(AttackPlugin):
                     if resp.status_code == 200:
                         if resp.url == url.replace(' ', '%20'):
                             output.finding('Found admin panel at %s' % resp.url)
-            except Exception as e:
-                print(e)
+            except Exception as err:
+                output.error("Error occured\nAborting this attack...\n")
+                return

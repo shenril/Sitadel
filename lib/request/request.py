@@ -1,6 +1,7 @@
 import sys
 
 from requests import Request, Session
+from requests import RequestException
 import urllib3
 
 from . import ragent as ragent
@@ -37,9 +38,9 @@ class SingleRequest:
                 allow_redirects=self.redirect,
                 verify=False)
             return resp
-        except Exception as err:
-            output.error("Error while trying to contact the website with error: {0} \nAborting this attack\n".format(err))
-            pass
+        except RequestException as err:
+            output.error("Error while trying to contact the website: \n {0}\n".format(err))
+            raise(err)
 
     def prepare_request(self, url, method, payload, headers, cookies):
         if payload is None:

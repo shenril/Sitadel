@@ -39,4 +39,5 @@ class StrutsShock(AttackPlugin):
                     output.finding(
                         'The site is my be vulnerable to Struts-Shock. See also https://www.exploit-db.com/exploits/41570/.')
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

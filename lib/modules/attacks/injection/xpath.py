@@ -35,4 +35,5 @@ class Xpath(AttackPlugin):
                         if re.search(r'XPATH syntax error:|XPathException', str(resp.content), re.I):
                             output.finding('That site is may be vulnerable to XPath Injection at %s' % url)
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

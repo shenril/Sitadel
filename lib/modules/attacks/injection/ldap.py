@@ -62,4 +62,5 @@ class LDAP(AttackPlugin):
                             output.finding('That site is may be vulnerable to LDAP Injection at %s' % url)
 
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

@@ -56,4 +56,5 @@ class Fingerprints:
                     self.output.finding('{category} detected: {result}'.format(category=category, result=result))
 
         except Exception as e:
-            print(e)
+            self.output.error("Error occured\nAborting fingerprint...\n")
+            return

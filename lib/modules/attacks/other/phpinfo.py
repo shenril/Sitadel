@@ -28,4 +28,5 @@ class Phpinfo(AttackPlugin):
                     output.finding('Found phpinfo page at %s' % (resp.url))
                     break
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return
