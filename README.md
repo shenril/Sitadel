@@ -9,6 +9,8 @@ It allows more flexibility for you to write new modules and implement new featur
 - Plugin system
 - Docker image available to build and run
 
+## Requirement Warning
+ This project **ONLY** supports python `>= 3.4`. There will be no backport to 2.7 
 
 ## Installation
 ```
