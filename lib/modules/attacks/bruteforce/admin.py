@@ -6,7 +6,6 @@ from .. import AttackPlugin
 
 
 class Admin(AttackPlugin):
-    level = Risk.NO_DANGER
 
     def process(self, start_url, crawled_urls):
         output = Services.get('output')
