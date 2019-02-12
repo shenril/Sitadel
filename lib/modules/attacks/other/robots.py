@@ -12,26 +12,23 @@ class Robots(AttackPlugin):
 
         output.info('Checking robots paths..')
         try:
-            url = urljoin(request.url, 'robots.txt')
+            url = urljoin(start_url, 'robots.txt')
             resp = request.send(
                 url=url,
                 method="GET",
                 payload=None,
                 headers=None
             )
-            if resp.url == url:
-                paths = re.findall(r'\ (/\S*)', str(resp.content))
-                if len(paths):
-                    for path in paths:
-                        if path.startswith('/'):
-                            path = path[1:]
-                        url2 = urljoin(request.url, path)
-                        resp = request.send(
-                            url=url2,
-                            method="GET",
-                            payload=None,
-                            headers=None
-                        )
-                        output.finding(" - [%s] %s" % (resp.status_code, url2))
+            for line in str(resp.text).splitlines():
+                if line.startswith('Disallow'):
+                    disallow_path=line.split(': ')[1].split(' ')[0]
+                    check_url = urljoin(start_url, disallow_path)
+                    resp = request.send(
+                        url=check_url,
+                        method="GET",
+                        payload=None,
+                        headers=None
+                    )
+                    output.finding(" - [%s] %s" % (resp.status_code, check_url))
         except Exception as e:
             print(e)
