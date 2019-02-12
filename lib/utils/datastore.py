@@ -10,4 +10,4 @@ class Datastore:
         self.rootpath = rootpath
 
     def open(self, filename, mode):
-        return open(os.path.join(self.rootpath, filename), mode)
+        return open(os.path.join(self.rootpath, filename), mode,encoding="utf-8")
