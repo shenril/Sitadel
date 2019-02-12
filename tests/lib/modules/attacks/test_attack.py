@@ -63,6 +63,6 @@ def test_current_plugins():
     Services.register("datastore", Datastore(settings.datastore))
     Services.register("logger", logging.getLogger("sitadelLog"))
     Services.register("output", Output())
-    Services.register("request_factory",Request(url=test_url, agent="Sitadel"))
+    Services.register("request_factory",SingleRequest(url=test_url, agent="Sitadel"))
     plugins = settings.attack_plugins
     Attacks(test_url, [test_url]).run(plugins)
