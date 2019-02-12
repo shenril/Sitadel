@@ -13,7 +13,7 @@ from lib.utils.container import Services
 class SingleRequest:
     def __init__(self, **kwargs):
         self.url = None if "url" not in kwargs else kwargs["url"]
-        self.agent = None if "agent" not in kwargs else kwargs["agent"]
+        self.agent = "Sitadel" if "agent" not in kwargs else kwargs["agent"]
         self.proxy = None if "proxy" not in kwargs else kwargs["proxy"]
         self.redirect = True if "redirect" not in kwargs else kwargs["redirect"]
         self.timeout = None if "timeout" not in kwargs else kwargs["timeout"]
@@ -38,7 +38,7 @@ class SingleRequest:
                 verify=False)
             return resp
         except Exception as err:
-            output.error("Error while trying to contact the website with error: {0} \n Aborting this attack\n".format(err))
+            output.error("Error while trying to contact the website with error: {0} \nAborting this attack\n".format(err))
             pass
 
     def prepare_request(self, url, method, payload, headers, cookies):
