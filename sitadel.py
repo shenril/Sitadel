@@ -13,7 +13,7 @@ import sys
 from lib import __version__
 from lib.config import settings
 from lib.config.settings import Risk
-from lib.request.request import Request
+from lib.request.request import SingleRequest
 from lib.utils import banner, manager, output, validator
 from lib.utils.container import Services
 from lib.utils.datastore import Datastore
@@ -66,7 +66,7 @@ class Sitadel(object):
         Services.register("logger", logging.getLogger("sitadelLog"))
         Services.register("output", Output())
         Services.register("request_factory",
-                          Request(url=self.url, agent=args.user_agent, proxy=args.proxy, redirect=args.redirect,
+                          SingleRequest(url=self.url, agent=args.user_agent, proxy=args.proxy, redirect=args.redirect,
                                   timeout=args.timeout))
 
         # Display target and scan starting time
