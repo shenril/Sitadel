@@ -7,7 +7,7 @@ from lib.modules.attacks import AttackPlugin, Attacks
 from lib.utils.container import Services
 from lib.utils.output import Output
 from lib.utils.datastore import Datastore
-from lib.request.request import Request
+from lib.request.request import SingleRequest
 
 
 def test_attack_plugin():

@@ -3,8 +3,7 @@ import os
 import pkgutil
 
 from lib.config.settings import Risk
-from lib.request import request
-from lib.utils import output
+from lib.utils.container import Services
 from .. import IPlugin
 
 
@@ -25,13 +24,8 @@ class Fingerprints:
 
         self.url = url
         self.cookie = cookie
-        self.output = output.Output()
-        self.request = request.Request(
-            agent=agent,
-            proxy=proxy,
-            redirect=redirect,
-            timeout=timeout
-        )
+        self.output = Services.get('output')
+        self.request = Services.get('request_factory')
 
     def run(self, plugins_activated):
         self.output.info('Launching fingerprints modules...')
