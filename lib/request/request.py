@@ -53,7 +53,6 @@ class SingleRequest:
             headers['User-Agent'] = self.ruagent
         else:
             headers['User-Agent'] = self.agent
-        
         # get method
         if method.upper() == "GET":
             req = Request(
