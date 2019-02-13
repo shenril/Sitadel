@@ -27,5 +27,6 @@ class Admin(AttackPlugin):
                     if resp.status_code == 200:
                         if resp.url == url.replace(' ', '%20'):
                             output.finding('Found admin panel at %s' % resp.url)
-            except Exception as e:
-                print(e)
+            except Exception:
+                output.error("Error occured\nAborting this attack...\n")
+                return

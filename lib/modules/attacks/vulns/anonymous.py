@@ -23,4 +23,5 @@ class Anonymous(AttackPlugin):
             if 'handshake failure' not in str(r):
                 output.finding('That site is vulnerable to Anonymous Cipher, CVE-2007-1858.')
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

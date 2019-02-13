@@ -30,4 +30,5 @@ class Bfile(AttackPlugin):
                         if resp.url == url.replace(' ', '%20'):
                             output.finding('Found file "%s" Backup at %s' % (d.strip(), resp.url))
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

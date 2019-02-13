@@ -39,4 +39,5 @@ class Xss(AttackPlugin):
                                     'That site is may be vulnerable to Cross Site Scripting (XSS) at %s' % url)
 
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

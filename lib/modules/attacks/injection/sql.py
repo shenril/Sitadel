@@ -65,4 +65,5 @@ class Sql(AttackPlugin):
                         if erro is not None :
                             output.finding('That site is may be vulnerable to %s at %s' % (erro, url))
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

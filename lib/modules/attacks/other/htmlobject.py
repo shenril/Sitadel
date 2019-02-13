@@ -20,4 +20,5 @@ class HtmlObject(AttackPlugin):
             if re.search(r'<object.*?>.*?<\/object>', str(resp.content), re.I):
                 output.finding('Found HTML Object, logs the existence of HTML object tags at:' % request.url)
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

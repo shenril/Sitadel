@@ -7,7 +7,7 @@ from lib.modules.attacks import AttackPlugin, Attacks
 from lib.utils.container import Services
 from lib.utils.output import Output
 from lib.utils.datastore import Datastore
-from lib.request.request import Request
+from lib.request.request import SingleRequest
 
 
 def test_attack_plugin():
@@ -63,6 +63,6 @@ def test_current_plugins():
     Services.register("datastore", Datastore(settings.datastore))
     Services.register("logger", logging.getLogger("sitadelLog"))
     Services.register("output", Output())
-    Services.register("request_factory",Request(url=test_url, agent="Sitadel"))
+    Services.register("request_factory",SingleRequest(url=test_url, agent="Sitadel"))
     plugins = settings.attack_plugins
     Attacks(test_url, [test_url]).run(plugins)

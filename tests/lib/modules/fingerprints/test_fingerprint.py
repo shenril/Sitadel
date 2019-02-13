@@ -7,7 +7,7 @@ from lib.modules.fingerprints import FingerprintPlugin, Fingerprints
 from lib.utils.container import Services
 from lib.utils.output import Output
 from lib.utils.datastore import Datastore
-from lib.request.request import Request
+from lib.request.request import SingleRequest
 
 
 def test_fingerprint_plugin():
@@ -59,6 +59,6 @@ def test_current_plugins():
     settings.from_yaml("tests/lib/config/test_fingerprint_config.yml")
     Services.register("logger", logging.getLogger("sitadelLog"))
     Services.register("output", Output())
-    Services.register("request_factory",Request(url=test_url, agent="Sitadel"))
+    Services.register("request_factory",SingleRequest(url=test_url, agent="Sitadel"))
     plugins = settings.fingerprint_plugins
     Fingerprints(agent="Sitadel",proxy=None,redirect=None,timeout=None,url=test_url,cookie=None).run(plugins)

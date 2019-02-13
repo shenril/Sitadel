@@ -1,14 +1,14 @@
 import pytest
 import requests
 
-from lib.request.request import Request
+from lib.request.request import SingleRequest
 
 
 def test_request():
-    r = Request()
+    r = SingleRequest()
     assert hasattr(r, 'send')
 
-    r1 = Request(url='test', agent='agent', proxy='proxy', redirect='redirect', timeout='timeout')
+    r1 = SingleRequest(url='test', agent='agent', proxy='proxy', redirect='redirect', timeout='timeout')
     assert r1.url == 'test'
     assert r1.agent == 'agent'
     assert r1.proxy == 'proxy'
@@ -18,7 +18,7 @@ def test_request():
 
 
 def test_request_send():
-    req = Request()
+    req = SingleRequest()
     with pytest.raises(requests.exceptions.MissingSchema):
         req.send(url='test')
 

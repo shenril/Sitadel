@@ -21,4 +21,5 @@ class Shellshock(AttackPlugin):
                 if re.search(r'.*/bin/bash', str(resp.content), re.I):
                     output.finding('That site is my be vulnerable to Shellshock.')
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

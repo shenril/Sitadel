@@ -22,4 +22,5 @@ class XST(AttackPlugin):
             if re.search('Sitadel: *?PastaXST', str(resp.content), re.I):
                 output.finding('That site is may be vulnerable to Cross Site Tracing (XST) vulnerability.')
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

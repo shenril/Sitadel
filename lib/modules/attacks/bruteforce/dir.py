@@ -31,4 +31,5 @@ class Dir(AttackPlugin):
                                     str(resp.content), re.I):
                                 output.finding('Indexing enabled at %s' % (resp.url))
             except Exception as e:
-                print(e)
+                output.error("Error occured\nAborting this attack...\n")
+                return

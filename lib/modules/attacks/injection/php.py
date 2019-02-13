@@ -34,4 +34,5 @@ class Php(AttackPlugin):
                                      str(resp.content)):
                             output.finding('That site is may be vulnerable to PHP Code Injection at %s' % url)
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return

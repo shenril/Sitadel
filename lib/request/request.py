@@ -1,24 +1,48 @@
 import sys
 
-import requests
+from requests import Request, Session
+from requests import RequestException
 import urllib3
 
 from . import ragent as ragent
+from lib.utils.container import Services
 
 
 # TODO Replace requests with Octopus-http to parallel the requests
 # @ref https://github.com/heynemann/octopus
 # Create a RequestFactory with getSingleRequest, getParallelRequests+enqueue
-class Request:
+class SingleRequest:
     def __init__(self, **kwargs):
         self.url = None if "url" not in kwargs else kwargs["url"]
-        self.agent = None if "agent" not in kwargs else kwargs["agent"]
+        self.agent = "Sitadel" if "agent" not in kwargs else kwargs["agent"]
         self.proxy = None if "proxy" not in kwargs else kwargs["proxy"]
         self.redirect = True if "redirect" not in kwargs else kwargs["redirect"]
         self.timeout = None if "timeout" not in kwargs else kwargs["timeout"]
         self.ruagent = ragent.RandomUserAgent()
 
     def send(self, url, method="GET", payload=None, headers=None, cookies=None):
+        # requests session
+        output = Services.get('output')
+        request = Session()
+        prepped=self.prepare_request(url,method,payload,headers,cookies)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        try:
+            resp=request.send(
+                prepped,
+                timeout=self.timeout,
+                proxies={
+                    'http': self.proxy,
+                    'https': self.proxy,
+                    'ftp': self.proxy,
+                },
+                allow_redirects=self.redirect,
+                verify=False)
+            return resp
+        except RequestException as err:
+            output.error("Error while trying to contact the website: \n {0}\n".format(err))
+            raise(err)
+
+    def prepare_request(self, url, method, payload, headers, cookies):
         if payload is None:
             payload = {}
         if headers is None:
@@ -29,58 +53,31 @@ class Request:
             headers['User-Agent'] = self.ruagent
         else:
             headers['User-Agent'] = self.agent
-        # requests session
-        request = requests.Session()
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         # get method
         if method.upper() == "GET":
-            req = request.request(
+            req = Request(
                 method=method.upper(),
                 url=url,
                 headers=headers,
                 cookies=cookies,
-                timeout=self.timeout,
-                allow_redirects=self.redirect,
-                proxies={
-                    'http': self.proxy,
-                    'https': self.proxy,
-                    'ftp': self.proxy,
-                },
-                verify=False
-            )
+            ).prepare()
         # post method
         elif method.upper() == "POST":
-            req = request.request(
+            req = Request(
                 method=method.upper(),
                 url=url,
                 data=payload,
                 headers=headers,
                 cookies=cookies,
-                timeout=self.timeout,
-                allow_redirects=self.redirect,
-                proxies={
-                    'http': self.proxy,
-                    'https': self.proxy,
-                    'ftp': self.proxy
-                },
-                verify=False
-            )
+            ).prepare()
         # other methods
         else:
-            req = request.request(
+            req = Request(
                 method=method.upper(),
                 url=url,
                 data=payload,
                 headers=headers,
                 cookies=cookies,
-                timeout=self.timeout,
-                allow_redirects=self.redirect,
-                proxies={
-                    'http': self.proxy,
-                    'https': self.proxy,
-                    'ftp': self.proxy
-                },
-                verify=False
-            )
+            ).prepare()
         # return all "req" attrs
         return req

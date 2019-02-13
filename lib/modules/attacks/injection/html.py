@@ -33,4 +33,5 @@ class Html(AttackPlugin):
                         if re.search(payload, str(resp.content)):
                             output.finding('That site is may be vulnerable to HTML Code Injection at %s' % url)
         except Exception as e:
-            print(e)
+            output.error("Error occured\nAborting this attack...\n")
+            return
