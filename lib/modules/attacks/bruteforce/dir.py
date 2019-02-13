@@ -28,7 +28,7 @@ class Dir(AttackPlugin):
                             output.finding('Found "%s" directory at %s' % (d, resp.url))
                             if re.search(
                                     r'Index Of|<a href="?C=N;O=D">Name</a>|<A HREF="?M=A">Last modified</A>|Parent Directory</a>|<TITLE>Folder Listing.|<<table summary="Directory Listing"',
-                                    str(resp.content), re.I):
+                                    resp.text, re.I):
                                 output.finding('Indexing enabled at %s' % (resp.url))
             except Exception as e:
                 output.error("Error occured\nAborting this attack...\n")
