@@ -24,7 +24,7 @@ class Phpinfo(AttackPlugin):
                     headers=None
                 )
                 if re.search(r'<h1 class="p">PHP Version (.*?)</h1>|(<tr class="h"><td>\n|alt="PHP Logo" /></a>)',
-                             str(resp.content)):
+                             resp.text):
                     output.finding('Found phpinfo page at %s' % (resp.url))
                     break
         except Exception as e:

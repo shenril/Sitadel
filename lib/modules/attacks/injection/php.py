@@ -31,7 +31,7 @@ class Php(AttackPlugin):
                     )
                     if resp.status_code == 200:
                         if re.search(r'<title>phpinfo[()]</title>|<h1 class="p">PHP Version (.*?)</h1>',
-                                     str(resp.content)):
+                                     resp.text):
                             output.finding('That site is may be vulnerable to PHP Code Injection at %s' % url)
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")

@@ -20,7 +20,7 @@ class Dav(AttackPlugin):
                     'Content-Length': '0'
                 }
             )
-            if re.search('<a:href>http://localhost/</a:href>', str(resp.content), re.I):
+            if re.search('<a:href>http://localhost/</a:href>', resp.text, re.I):
                 output.finding(
                     'That site is may be vulnerable to WebDAV authentication bypass vulnerability, (CVE-2009-1535).')
         except Exception as e:

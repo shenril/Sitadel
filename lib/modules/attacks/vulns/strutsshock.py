@@ -35,7 +35,7 @@ class StrutsShock(AttackPlugin):
                 payload=None
             )
             if resp.status_code == 200:
-                if re.search(r'.*:/bin/bash', str(resp.content), re.I):
+                if re.search(r'.*:/bin/bash', resp.text, re.I):
                     output.finding(
                         'The site is my be vulnerable to Struts-Shock. See also https://www.exploit-db.com/exploits/41570/.')
         except Exception as e:

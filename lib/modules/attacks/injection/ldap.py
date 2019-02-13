@@ -58,7 +58,7 @@ class LDAP(AttackPlugin):
                             payload=None,
                             headers=None
                         )
-                        if self.errors(str(resp.content)):
+                        if self.errors(resp.text):
                             output.finding('That site is may be vulnerable to LDAP Injection at %s' % url)
 
         except Exception as e:
