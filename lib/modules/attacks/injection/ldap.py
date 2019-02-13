@@ -37,6 +37,7 @@ class LDAP(AttackPlugin):
         output = Services.get('output')
         datastore = Services.get('datastore')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Checking ldap injection...')
         db = datastore.open('ldap.txt', 'r')
@@ -62,5 +63,6 @@ class LDAP(AttackPlugin):
                             output.finding('That site is may be vulnerable to LDAP Injection at %s' % url)
 
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

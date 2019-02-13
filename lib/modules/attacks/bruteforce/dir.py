@@ -10,6 +10,7 @@ class Dir(AttackPlugin):
         output = Services.get('output')
         datastore = Services.get('datastore')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Checking common dirs..')
         with datastore.open('cdir.txt', 'r') as db:
@@ -31,5 +32,6 @@ class Dir(AttackPlugin):
                                     resp.text, re.I):
                                 output.finding('Indexing enabled at %s' % (resp.url))
             except Exception as e:
+                logger.error(e)
                 output.error("Error occured\nAborting this attack...\n")
                 return

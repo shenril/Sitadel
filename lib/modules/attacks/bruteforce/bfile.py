@@ -9,6 +9,7 @@ class Bfile(AttackPlugin):
         output = Services.get('output')
         datastore = Services.get('datastore')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Checking common backup files..')
         db = datastore.open('bfile.txt', 'r')
@@ -30,5 +31,6 @@ class Bfile(AttackPlugin):
                         if resp.url == url.replace(' ', '%20'):
                             output.finding('Found file "%s" Backup at %s' % (d.strip(), resp.url))
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

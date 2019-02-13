@@ -9,6 +9,7 @@ class Php(AttackPlugin):
     def process(self, start_url, crawled_urls):
         output = Services.get('output')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Checking php code injection...')
         payload = "1;phpinfo()"
@@ -34,5 +35,6 @@ class Php(AttackPlugin):
                                      resp.text):
                             output.finding('That site is may be vulnerable to PHP Code Injection at %s' % url)
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

@@ -10,6 +10,7 @@ class Bdir(AttackPlugin):
         output = Services.get('output')
         datastore = Services.get('datastore')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Checking common backup dirs..')
         db = datastore.open('bdir.txt', 'r')
@@ -31,5 +32,6 @@ class Bdir(AttackPlugin):
                         if resp.url == url.replace(' ', '%20'):
                             output.finding('Found directory "%s" Backup at %s' % (d.strip(), resp.url))
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

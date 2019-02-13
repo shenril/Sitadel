@@ -8,6 +8,7 @@ class Shellshock(AttackPlugin):
     def process(self, start_url, crawled_urls):
         output = Services.get('output')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Scanning shellshock vuln..')
         try:
@@ -21,5 +22,6 @@ class Shellshock(AttackPlugin):
                 if re.search(r'.*/bin/bash', resp.text, re.I):
                     output.finding('That site is my be vulnerable to Shellshock.')
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

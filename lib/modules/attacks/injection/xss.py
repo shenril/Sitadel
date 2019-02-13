@@ -11,6 +11,7 @@ class Xss(AttackPlugin):
         output = Services.get('output')
         request = Services.get('request_factory')
         datastore = Services.get('datastore')
+        logger = Services.get('logger')
 
         db = datastore.open('xss.txt', 'r')
         dbfiles = [x.split('\n') for x in db]
@@ -39,5 +40,6 @@ class Xss(AttackPlugin):
                                     'That site is may be vulnerable to Cross Site Scripting (XSS) at %s' % url)
 
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

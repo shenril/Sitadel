@@ -9,6 +9,7 @@ class AllowMethod(AttackPlugin):
         output = Services.get('output')
         request = Services.get('request_factory')
         datastore = Services.get('datastore')
+        logger = Services.get('logger')
 
         output.info('Checking http allow methods..')
         db = datastore.open('allowmethod.txt', 'r')
@@ -24,5 +25,6 @@ class AllowMethod(AttackPlugin):
                         output.finding('HTTP Allow Method: %s' % allow)
                         break
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

@@ -9,6 +9,7 @@ class Html(AttackPlugin):
     def process(self, start_url, crawled_urls):
         output = Services.get('output')
         request = Services.get('request_factory')
+        logger = Services.get('logger')
 
         output.info('Checking html injection...')
         try:
@@ -33,5 +34,6 @@ class Html(AttackPlugin):
                         if re.search(payload, resp.text):
                             output.finding('That site is may be vulnerable to HTML Code Injection at %s' % url)
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return

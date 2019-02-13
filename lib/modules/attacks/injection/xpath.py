@@ -10,6 +10,7 @@ class Xpath(AttackPlugin):
         output = Services.get('output')
         request = Services.get('request_factory')
         datastore = Services.get('datastore')
+        logger = Services.get('logger')
 
         db = datastore.open('xpath.txt', 'r')
         dbfiles = [x.split('\n') for x in db]
@@ -35,5 +36,6 @@ class Xpath(AttackPlugin):
                         if re.search(r'XPATH syntax error:|XPathException', resp.text, re.I):
                             output.finding('That site is may be vulnerable to XPath Injection at %s' % url)
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             return
