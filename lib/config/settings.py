@@ -45,7 +45,7 @@ class Settings(object):
         with open(filepath, 'r') as yamlfile:
             try:
                 # Getting config from the file
-                config = yaml.load(yamlfile)
+                config = yaml.load(yamlfile, Loader=yaml.SafeLoader)
                 # Merging the dictionaries and getting result
                 cls.cfg = {**cls.cfg, **config}
             except yaml.YAMLError as e:
