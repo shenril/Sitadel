@@ -17,13 +17,14 @@ class Admin(AttackPlugin):
             try:
                 for adminpath in dbfiles:
                     url = urljoin(str(start_url), str(adminpath))
-                    output.info("Testing: %s", url)
+                    output.debug("Testing: %s", url)
                     resp = request.send(
                         url=url, method="HEAD", payload=None, headers=None
                     )
                     if resp.status_code == 200:
                         if resp.url == url.replace(" ", "%20"):
                             output.finding("Found admin panel at %s" % resp.url)
-            except Exception:
+            except Exception as e:
                 output.error("Error occured\nAborting this attack...\n")
+                output.debug("Traceback: %s", e)
                 return

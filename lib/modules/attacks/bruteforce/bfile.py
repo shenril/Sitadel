@@ -20,7 +20,7 @@ class Bfile(AttackPlugin):
                 for d in dbfiles1:
                     bdir = b.replace("[name]", d.strip())
                     url = urljoin(start_url, bdir)
-                    output.info("Testing: %s", url)
+                    output.debug("Testing: %s", url)
                     resp = request.send(
                         url=url, method="GET", payload=None, headers=None
                     )
@@ -31,4 +31,5 @@ class Bfile(AttackPlugin):
                             )
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
+            output.debug("Traceback: %s", e)
             return

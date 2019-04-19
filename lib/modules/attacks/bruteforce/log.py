@@ -16,7 +16,7 @@ class Log(AttackPlugin):
             try:
                 for d in dbfiles:
                     url = urljoin(start_url, d)
-                    output.info("Testing: %s", url)
+                    output.debug("Testing: %s", url)
                     resp = request.send(
                         url=url, method="GET", payload=None, headers=None
                     )
@@ -25,4 +25,5 @@ class Log(AttackPlugin):
                             output.finding("Found log file at %s" % (resp.url))
             except Exception as e:
                 output.error("Error occured\nAborting this attack...\n")
+                output.debug("Traceback: %s", e)
                 return
