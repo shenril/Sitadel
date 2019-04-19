@@ -27,19 +27,19 @@ class LDAP(AttackPlugin):
             "Local error occurred",
             "The search filter is invalid",
             "The search filter cannot be recognized",
-            "IPWorksASP.LDAP"
+            "IPWorksASP.LDAP",
         )
         for err in error:
             if re.search(err, data):
                 return "LDAP Injection"
 
     def process(self, start_url, crawled_urls):
-        output = Services.get('output')
-        datastore = Services.get('datastore')
-        request = Services.get('request_factory')
+        output = Services.get("output")
+        datastore = Services.get("datastore")
+        request = Services.get("request_factory")
 
-        output.info('Checking ldap injection...')
-        db = datastore.open('ldap.txt', 'r')
+        output.info("Checking ldap injection...")
+        db = datastore.open("ldap.txt", "r")
         dbfiles = [x.strip() for x in db]
         try:
             for payload in dbfiles:
@@ -52,15 +52,17 @@ class LDAP(AttackPlugin):
                     if len(tainted_params) > 0:
                         # Prepare the attack URL
                         attack_url = urlsplit(url).geturl() + urlencode(tainted_params)
+                        output.debug("Testing: %s" % attack_url)
                         resp = request.send(
-                            url=attack_url,
-                            method="GET",
-                            payload=None,
-                            headers=None
+                            url=attack_url, method="GET", payload=None, headers=None
                         )
                         if self.errors(resp.text):
-                            output.finding('That site is may be vulnerable to LDAP Injection at %s' % url)
+                            output.finding(
+                                "That site is may be vulnerable to LDAP Injection at %s"
+                                % url
+                            )
 
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
+            output.debug("Traceback: %s" % e)
             return

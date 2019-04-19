@@ -6,20 +6,16 @@ from .. import AttackPlugin
 
 class Shellshock(AttackPlugin):
     def process(self, start_url, crawled_urls):
-        output = Services.get('output')
-        request = Services.get('request_factory')
+        output = Services.get("output")
+        request = Services.get("request_factory")
 
-        output.info('Scanning shellshock vuln..')
+        output.info("Scanning shellshock vuln..")
         try:
-            resp = request.send(
-                url=start_url,
-                method="GET",
-                payload=None,
-                headers=None
-            )
+            resp = request.send(url=start_url, method="GET", payload=None, headers=None)
             if resp.status_code == 200:
-                if re.search(r'.*/bin/bash', resp.text, re.I):
-                    output.finding('That site is my be vulnerable to Shellshock.')
+                if re.search(r".*/bin/bash", resp.text, re.I):
+                    output.finding("That site is my be vulnerable to Shellshock.")
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
+            output.debug("Traceback: %s" % e)
             return

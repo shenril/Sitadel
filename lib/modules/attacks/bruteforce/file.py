@@ -6,25 +6,24 @@ from .. import AttackPlugin
 
 class File(AttackPlugin):
     def process(self, start_url, crawled_urls):
-        output = Services.get('output')
-        datastore = Services.get('datastore')
-        request = Services.get('request_factory')
+        output = Services.get("output")
+        datastore = Services.get("datastore")
+        request = Services.get("request_factory")
 
-        output.info('Checking common files...')
-        with datastore.open('cfile.txt', 'r') as db:
+        output.info("Checking common files...")
+        with datastore.open("cfile.txt", "r") as db:
             dbfiles = [x.strip() for x in db.readlines()]
             try:
                 for d in dbfiles:
                     url = urljoin(start_url, d)
+                    output.debug("Testing: %s" % url)
                     resp = request.send(
-                        url=url,
-                        method="GET",
-                        payload=None,
-                        headers=None
+                        url=url, method="GET", payload=None, headers=None
                     )
                     if resp.status_code == 200:
-                        if resp.url == url.replace(' ', '%20'):
+                        if resp.url == url.replace(" ", "%20"):
                             output.finding('Found "%s" file at %s' % (d, resp.url))
             except Exception as e:
                 output.error("Error occured\nAborting this attack...\n")
+                output.debug("Traceback: %s" % e)
                 return
