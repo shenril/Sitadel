@@ -27,5 +27,5 @@ class AllowMethod(AttackPlugin):
                         break
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
-            output.debug("Traceback: %s", e)
+            output.debug("Traceback: %s" % e)
             return

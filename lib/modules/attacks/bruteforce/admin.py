@@ -17,7 +17,7 @@ class Admin(AttackPlugin):
             try:
                 for adminpath in dbfiles:
                     url = urljoin(str(start_url), str(adminpath))
-                    output.debug("Testing: %s", url)
+                    output.debug("Testing: %s" % url)
                     resp = request.send(
                         url=url, method="HEAD", payload=None, headers=None
                     )
@@ -26,5 +26,5 @@ class Admin(AttackPlugin):
                             output.finding("Found admin panel at %s" % resp.url)
             except Exception as e:
                 output.error("Error occured\nAborting this attack...\n")
-                output.debug("Traceback: %s", e)
+                output.debug("Traceback: %s" % e)
                 return

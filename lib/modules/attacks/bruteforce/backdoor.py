@@ -16,7 +16,7 @@ class Backdoor(AttackPlugin):
             try:
                 for backdoorpath in dbfiles:
                     url = urljoin(start_url, backdoorpath)
-                    output.debug("Testing: %s", url)
+                    output.debug("Testing: %s" % url)
                     resp = request.send(
                         url=url, method="HEAD", payload=None, headers=None
                     )
@@ -25,5 +25,5 @@ class Backdoor(AttackPlugin):
                             output.finding("Found Backdoor at %s" % resp.url)
             except Exception as e:
                 output.error("Error occured\nAborting this attack...\n")
-                output.debug("Traceback: %s", e)
+                output.debug("Traceback: %s" % e)
                 return

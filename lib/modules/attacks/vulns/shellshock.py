@@ -17,5 +17,5 @@ class Shellshock(AttackPlugin):
                     output.finding("That site is my be vulnerable to Shellshock.")
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
-            output.debug("Traceback: %s", e)
+            output.debug("Traceback: %s" % e)
             return

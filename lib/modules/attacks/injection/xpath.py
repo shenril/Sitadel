@@ -26,7 +26,7 @@ class Xpath(AttackPlugin):
                     if len(tainted_params) > 0:
                         # Prepare the attack URL
                         attack_url = urlsplit(url).geturl() + urlencode(tainted_params)
-                        output.debug("Testing: %s", attack_url)
+                        output.debug("Testing: %s" % attack_url)
                         resp = request.send(
                             url=attack_url, method="GET", payload=None, headers=None
                         )
@@ -39,5 +39,5 @@ class Xpath(AttackPlugin):
                             )
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
-            output.debug("Traceback: %s", e)
+            output.debug("Traceback: %s" % e)
             return

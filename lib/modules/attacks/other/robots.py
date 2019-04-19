@@ -24,5 +24,5 @@ class Robots(AttackPlugin):
                     output.finding(" - [%s] %s" % (resp.status_code, check_url))
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
-            output.debug("Traceback: %s", e)
+            output.debug("Traceback: %s" % e)
             return
