@@ -80,7 +80,7 @@ Run with risk level at DANGEROUS and do not follow redirections
 
 Run specifics modules only and full verbosity
 
-`python sitadel http://website.com -a bruteforce -f header server -vvv`
+`python sitadel http://website.com -a bruteforce -f header server -v`
 
 ## Run with docker
 `docker build -t sitadel .`
