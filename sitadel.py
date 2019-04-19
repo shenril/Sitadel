@@ -64,6 +64,7 @@ class Sitadel(object):
             "-t",
             "--timeout",
             type=int,
+            default=30,
             help="Timeout to set for the scan HTTP requests",
         )
         parser.add_argument(

@@ -38,6 +38,8 @@ class SingleRequest:
                 allow_redirects=self.redirect,
                 verify=False)
             return resp
+        except TimeoutError:
+            output.error("Timeout error on the URL: %s" % url)
         except RequestException as err:
             output.error("Error while trying to contact the website: \n {0}\n".format(err))
             raise(err)
