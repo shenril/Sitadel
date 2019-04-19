@@ -16,7 +16,7 @@ It allows more flexibility for you to write new modules and implement new featur
 ```
 $ git clone https://github.com/shenril/Sitadel.git
 $ cd Sitadel
-$ pip install .
+$ pip3 install .
 $ python sitadel.py --help
 ```
 
