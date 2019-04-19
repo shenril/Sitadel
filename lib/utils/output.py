@@ -8,6 +8,9 @@ class Output:
     w = Fore.WHITE
     e = Style.RESET_ALL
 
+    def __init__(self, level=0):
+        self.level = level
+
     def finding(self, value):
         print('{}[+]{} {}{}{}'.format(
             Output.g,
@@ -25,9 +28,10 @@ class Output:
             Output.e), flush=True)
 
     def info(self, value):
-        print('{}[i]{} {}{}{}'.format(
-            Output.y,
-            Output.e,
-            Output.w,
-            value,
-            Output.e), flush=True)
+        if self.level==2:
+            print('{}[i]{} {}{}{}'.format(
+                Output.y,
+                Output.e,
+                Output.w,
+                value,
+                Output.e), flush=True)

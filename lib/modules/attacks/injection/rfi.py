@@ -6,15 +6,14 @@ from .. import AttackPlugin
 
 
 class Rfi(AttackPlugin):
-
     def process(self, start_url, crawled_urls):
-        output = Services.get('output')
-        request = Services.get('request_factory')
-        datastore = Services.get('datastore')
+        output = Services.get("output")
+        request = Services.get("request_factory")
+        datastore = Services.get("datastore")
 
-        output.info('Checking remote file inclusion...')
-        db = datastore.open('rfi.txt', 'r')
-        dbfiles = [x.split('\n') for x in db]
+        output.info("Checking remote file inclusion...")
+        db = datastore.open("rfi.txt", "r")
+        dbfiles = [x.split("\n") for x in db]
         pl = r"root:/root:/bin/bash|default=multi([0])disk([0])rdisk([0])partition([1])\\WINDOWS"
         try:
             for payload in dbfiles:
@@ -28,15 +27,15 @@ class Rfi(AttackPlugin):
                     if len(tainted_params) > 0:
                         # Prepare the attack URL
                         attack_url = urlsplit(url).geturl() + urlencode(tainted_params)
+                        output.info("Testing: %s", attack_url)
                         resp = request.send(
-                            url=attack_url,
-                            method="GET",
-                            payload=None,
-                            headers=None
+                            url=attack_url, method="GET", payload=None, headers=None
                         )
                         if re.search(pl, resp.text):
                             output.finding(
-                                'That site is may be vulnerable to Remote File Inclusion (RFI) at %s' % url)
+                                "That site is may be vulnerable to Remote File Inclusion (RFI) at %s"
+                                % url
+                            )
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
             return
