@@ -33,6 +33,6 @@ class Output:
     def debug(self, value):
         if self.level == 1:
             print(
-                "{}[i]{} {}{}{}".format(Output.c, Output.e, Output.w, value, Output.e),
+                "{}[d]{} {}{}{}".format(Output.c, Output.e, Output.w, value, Output.e),
                 flush=True,
             )
