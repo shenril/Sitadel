@@ -33,8 +33,8 @@ class Php(AttackPlugin):
                             resp.text,
                         ):
                             output.finding(
-                                "That site is may be vulnerable to PHP Code Injection at %s"
-                                % url
+                                "That site is may be vulnerable to PHP Code Injection at %s\nInjection: %s"
+                                % (url, payload)
                             )
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
