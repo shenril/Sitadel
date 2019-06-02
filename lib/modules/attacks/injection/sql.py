@@ -72,8 +72,8 @@ class Sql(AttackPlugin):
                         erro = self.dberror(resp.text)
                         if erro is not None:
                             output.finding(
-                                "That site is may be vulnerable to %s at %s"
-                                % (erro, url)
+                                "That site may be vulnerable to SQL Injection at %s\nInjection: %s"
+                                % (url, payload)
                             )
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")

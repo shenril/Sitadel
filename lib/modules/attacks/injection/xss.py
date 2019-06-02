@@ -33,8 +33,8 @@ class Xss(AttackPlugin):
                         if resp.status_code == 200:
                             if re.search(payload[0], resp.text, re.I):
                                 output.finding(
-                                    "That site is may be vulnerable to Cross Site Scripting (XSS) at %s"
-                                    % url
+                                    "That site may be vulnerable to Cross Site Scripting (XSS) at %s \nInjection: %s"
+                                    % (url, payload[0])
                                 )
 
         except Exception as e:

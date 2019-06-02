@@ -33,8 +33,8 @@ class Rfi(AttackPlugin):
                         )
                         if re.search(pl, resp.text):
                             output.finding(
-                                "That site is may be vulnerable to Remote File Inclusion (RFI) at %s"
-                                % url
+                                "That site is may be vulnerable to Remote File Inclusion (RFI) at %s\nInjection: %s"
+                                % (url, payload)
                             )
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")

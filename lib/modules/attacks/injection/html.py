@@ -30,8 +30,8 @@ class Html(AttackPlugin):
                     if resp.status_code == 200:
                         if re.search(payload, resp.text):
                             output.finding(
-                                "That site is may be vulnerable to HTML Code Injection at %s"
-                                % url
+                                "That site is may be vulnerable to HTML Code Injection at %s\nInjection: %s"
+                                % (url, payload)
                             )
         except Exception as e:
             output.error("Error occured\nAborting this attack...\n")
