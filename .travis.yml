@@ -1,10 +1,12 @@
 services:
   - docker
 
+dist: xenial
 language: python
 python:
   - "3.5"
   - "3.6.6"
+  - "3.7"
 
 # Test website to run attack
 before_install:
