@@ -10,6 +10,7 @@ class Xpath(AttackPlugin):
         output = Services.get("output")
         request = Services.get("request_factory")
         datastore = Services.get("datastore")
+        logger = Services.get("logger")
 
         db = datastore.open("xpath.txt", "r")
         dbfiles = [x.split("\n") for x in db]
@@ -38,6 +39,7 @@ class Xpath(AttackPlugin):
                                 % (url, payload)
                             )
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             output.debug("Traceback: %s" % e)
             return

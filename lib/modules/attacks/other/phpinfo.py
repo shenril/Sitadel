@@ -10,6 +10,7 @@ class Phpinfo(AttackPlugin):
         output = Services.get("output")
         request = Services.get("request_factory")
         datastore = Services.get("datastore")
+        logger = Services.get("logger")
 
         output.info("Checking phpinfo..")
         db = datastore.open("phpinfo.txt", "r")
@@ -25,6 +26,7 @@ class Phpinfo(AttackPlugin):
                     output.finding("Found phpinfo page at %s" % (resp.url))
                     break
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             output.debug("Traceback: %s" % e)
             return

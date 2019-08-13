@@ -9,6 +9,7 @@ from .. import AttackPlugin
 class Anonymous(AttackPlugin):
     def process(self, start_url, crawled_urls):
         output = Services.get("output")
+        logger = Services.get("logger")
 
         output.info("Scanning anonymous cipher vuln...")
         ip = ""
@@ -33,6 +34,7 @@ class Anonymous(AttackPlugin):
                     "That site is vulnerable to Anonymous Cipher, CVE-2007-1858."
                 )
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             output.debug("Traceback: %s" % e)
             return

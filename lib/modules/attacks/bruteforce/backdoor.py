@@ -9,6 +9,7 @@ class Backdoor(AttackPlugin):
         output = Services.get("output")
         datastore = Services.get("datastore")
         request = Services.get("request_factory")
+        logger = Services.get("logger")
 
         output.info("Checking common backdoors...")
         with datastore.open("backdoor.txt", "r") as db:
@@ -24,6 +25,7 @@ class Backdoor(AttackPlugin):
                         if resp.url == url.replace(" ", "%20"):
                             output.finding("Found Backdoor at %s" % resp.url)
             except Exception as e:
+                logger.error(e)
                 output.error("Error occured\nAborting this attack...\n")
                 output.debug("Traceback: %s" % e)
                 return

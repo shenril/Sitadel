@@ -10,6 +10,7 @@ class Rfi(AttackPlugin):
         output = Services.get("output")
         request = Services.get("request_factory")
         datastore = Services.get("datastore")
+        logger = Services.get("logger")
 
         output.info("Checking remote file inclusion...")
         db = datastore.open("rfi.txt", "r")
@@ -37,6 +38,7 @@ class Rfi(AttackPlugin):
                                 % (url, payload)
                             )
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             output.debug("Traceback: %s" % e)
             return

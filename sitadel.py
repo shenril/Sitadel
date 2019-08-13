@@ -64,7 +64,10 @@ class Sitadel(object):
             "-t",
             "--timeout",
             type=int,
+<<<<<<< HEAD
             default=30,
+=======
+>>>>>>> feature/add-log-handling
             help="Timeout to set for the scan HTTP requests",
         )
         parser.add_argument(
@@ -100,10 +103,45 @@ class Sitadel(object):
         if args.risk is not None:
             settings.risk = Risk(args.risk)
 
+        # Setting up the logger
+        logger = logging.getLogger("sitadelLog")
+        logging.basicConfig(
+            filename="sitadel.log",
+            filemode="w",
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%d-%b-%y %H:%M:%S",
+            level=(logging.CRITICAL - (args.verbosity * 10)),
+        )
+
+        # Create handlers
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
+
+        file_handler = logging.FileHandler("sitadel.log")
+        file_handler.setLevel(level=(logging.CRITICAL - (args.verbosity * 10)))
+
+        # Create formatters and add it to handlers
+        console_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+        console_handler.setFormatter(console_format)
+
+        file_format = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        file_handler.setFormatter(file_format)
+
+        # Add handlers to the logger
+        logger.addHandler(console_handler)
+        logger.addHandler(file_handler)
+
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
+<<<<<<< HEAD
         Services.register("logger", logging.getLogger("sitadelLog"))
         Services.register("output", Output(args.verbosity))
+=======
+        Services.register("logger", logger)
+        Services.register("output", Output())
+>>>>>>> feature/add-log-handling
         Services.register(
             "request_factory",
             SingleRequest(

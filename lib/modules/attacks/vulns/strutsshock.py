@@ -8,6 +8,7 @@ class StrutsShock(AttackPlugin):
     def process(self, start_url, crawled_urls):
         output = Services.get("output")
         request = Services.get("request_factory")
+        logger = Services.get("logger")
 
         output.info("Scanning struts-shock vuln..")
         try:
@@ -42,6 +43,7 @@ class StrutsShock(AttackPlugin):
                         "The site is my be vulnerable to Struts-Shock. See also https://www.exploit-db.com/exploits/41570/."
                     )
         except Exception as e:
+            logger.error(e)
             output.error("Error occured\nAborting this attack...\n")
             output.debug("Traceback: %s" % e)
             return
