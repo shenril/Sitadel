@@ -64,10 +64,7 @@ class Sitadel(object):
             "-t",
             "--timeout",
             type=int,
-<<<<<<< HEAD
             default=30,
-=======
->>>>>>> feature/add-log-handling
             help="Timeout to set for the scan HTTP requests",
         )
         parser.add_argument(
@@ -135,13 +132,8 @@ class Sitadel(object):
 
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
-<<<<<<< HEAD
-        Services.register("logger", logging.getLogger("sitadelLog"))
-        Services.register("output", Output(args.verbosity))
-=======
         Services.register("logger", logger)
         Services.register("output", Output())
->>>>>>> feature/add-log-handling
         Services.register(
             "request_factory",
             SingleRequest(
