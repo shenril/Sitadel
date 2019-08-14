@@ -13,7 +13,7 @@ class Azure(FingerprintPlugin):
     level = Risk.NO_DANGER
 
     def process(self, headers, content):
-        request = Services.get('request_factory')
+        request = Services.get("request_factory")
         hostname = urlparse(request.url).hostname
         _ = False
 
@@ -23,10 +23,10 @@ class Azure(FingerprintPlugin):
             resolver.timeout = 2
             resolver.lifetime = 2
 
-            dns_query = resolver.query(hostname, 'CNAME')
+            dns_query = resolver.query(hostname, "CNAME")
             if len(dns_query) > 0:
                 for answer in dns_query:
-                    _ |= re.search(r'azureedge\.net', str(answer), re.I) is not None
+                    _ |= re.search(r"azureedge\.net", str(answer), re.I) is not None
             if _:
                 return "Azure CDN"
         except NoAnswer:

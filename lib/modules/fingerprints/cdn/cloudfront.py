@@ -13,7 +13,7 @@ class CloudFront(FingerprintPlugin):
     level = Risk.NO_DANGER
 
     def process(self, headers, content):
-        request = Services.get('request_factory')
+        request = Services.get("request_factory")
         hostname = urlparse(request.url).hostname
         _ = False
         try:
@@ -22,11 +22,11 @@ class CloudFront(FingerprintPlugin):
             resolver.timeout = 2
             resolver.lifetime = 2
 
-            dns_query = resolver.query(hostname, 'CNAME')
+            dns_query = resolver.query(hostname, "CNAME")
 
             if len(dns_query) > 0:
                 for answer in dns_query:
-                    _ |= re.search(r'cloudfront\.net', str(answer), re.I) is not None
+                    _ |= re.search(r"cloudfront\.net", str(answer), re.I) is not None
             if _:
                 return "CloudFront CDN (Amazon)"
         except NoAnswer:
