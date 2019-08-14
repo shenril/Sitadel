@@ -15,7 +15,6 @@ class Html(AttackPlugin):
         try:
             payload = '<h1><a href="http://www.google.com">Click Linguini!</a></h1>'
             for url in crawled_urls:
-
                 # Current request parameters
                 params = dict(parse_qsl(urlsplit(url).query))
                 # Change the value of the parameters with the payload
