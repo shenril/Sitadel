@@ -27,7 +27,7 @@ class Log(AttackPlugin):
         self.output.info("Checking common log files..")
         with self.datastore.open("log.txt", "r") as db:
             dbfiles = [x.strip() for x in db.readlines()]
-            urls = map(lambda filex: urljoin(str(start_url), str(filex)), dbfiles)
+            urls = map(lambda log: urljoin(str(start_url), str(log)), dbfiles)
             # We launch ThreadPoolExecutor with max_workers to None to get default optimization
             # https://docs.python.org/3/library/concurrent.futures.html
             with PoolExecutor(max_workers=None) as executor:

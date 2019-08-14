@@ -32,7 +32,7 @@ class Bfile(AttackPlugin):
         for b in dbfiles:
             for d in dbfiles1:
                 bdir = b.replace("[name]", d.strip())
-                urls.append(urljoin(start_url, bdir))
+                urls.append(urljoin(str(start_url), str(bdir)))
         # We launch ThreadPoolExecutor with max_workers to None to get default optimization
         # https://docs.python.org/3/library/concurrent.futures.html
         with PoolExecutor(max_workers=None) as executor:
