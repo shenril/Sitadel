@@ -14,6 +14,7 @@ class Admin(AttackPlugin):
 
     def check_url(self, url):
         try:
+            self.output.debug("Testing: %s" % url)
             resp = self.request.send(url=url, method="HEAD", payload=None, headers=None)
             if resp.status_code == 200:
                 if resp.url == url.replace(" ", "%20"):
@@ -31,6 +32,12 @@ class Admin(AttackPlugin):
             urls = map(
                 lambda adminpath: urljoin(str(start_url), str(adminpath)), dbfiles
             )
-            with PoolExecutor(max_workers=4) as executor:
-                for _ in executor.map(self.check_url, urls):
-                    pass
+            # We launch ThreadPoolExecutor with max_workers to None to get default optimization
+            # https://docs.python.org/3/library/concurrent.futures.html
+            with PoolExecutor(max_workers=None) as executor:
+                try:
+                    for _ in executor.map(self.check_url, urls):
+                        pass
+                except KeyboardInterrupt:
+                    executor.shutdown()
+
