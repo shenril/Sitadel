@@ -7,15 +7,7 @@ assignees: shenril
 
 ---
 
-<<<<<<< HEAD
-**Environment :**
-
-- OS: [e.g. Windows,Linux,Mac]
-- Python version [e.g. 3.5, 3.6]
-- Sitadel version
-=======
 ## Environment
->>>>>>> master
 
 - OS: [e.g. Windows,Linux,Mac]
 - Python version [e.g. 3.5, 3.6]
