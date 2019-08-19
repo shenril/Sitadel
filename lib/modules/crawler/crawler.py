@@ -48,13 +48,12 @@ def crawl(url, user_agent):
     process.start()
 
     # Clean the results
-    clean_urls = []
+    clean_urls = set()
     for u in urls:
         try:
             new_url = urlparse(u).geturl()
-            if new_url not in clean_urls:
-                clean_urls.append(new_url)
+            clean_urls.add(new_url)
         except ValueError:
             continue
 
-    return clean_urls
+    return list(clean_urls)
