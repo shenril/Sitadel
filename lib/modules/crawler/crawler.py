@@ -16,12 +16,9 @@ class SitadelSpider(CrawlSpider):
 
     rules = [
         Rule(
-            LinkExtractor(
-                canonicalize=True,
-                unique=True
-            ),
+            LinkExtractor(canonicalize=True, unique=True),
             follow=True,
-            callback="parse_items"
+            callback="parse_items",
         )
     ]
 
@@ -29,14 +26,14 @@ class SitadelSpider(CrawlSpider):
     def parse_items(self, response):
         links = LinkExtractor(canonicalize=True, unique=True).extract_links(response)
         for link in links:
-            for allowed_domain in self.allowed_domains:
+            for allowed_domain in super.allowed_domains:
                 if urlparse(link.url).netloc == allowed_domain:
                     urls.append(link.url)
                     yield scrapy.Request(link.url, callback=self.parse)
 
 
 def crawl(url, user_agent):
-    output = Services.get('output')
+    output = Services.get("output")
 
     # Settings for the crawler
     settings = get_project_settings()
@@ -44,7 +41,7 @@ def crawl(url, user_agent):
     settings.set("LOG_LEVEL", "CRITICAL")
 
     # Create the process that will perform the crawl
-    output.info('Start crawling the target website')
+    output.info("Start crawling the target website")
     process = CrawlerProcess(settings)
     domain = urlparse(url).hostname
     process.crawl(SitadelSpider, start_urls=[str(url)], allowed_domains=[str(domain)])

@@ -13,7 +13,7 @@ class Html(AttackPlugin):
 
         output.info("Checking html injection...")
         try:
-            payload = '<h1><a href="http://www.google.com">Click Linguini!</a></h1>'
+            payload = '<h1><a href="http://www.google.com">Click Sitadel!</a></h1>'
             for url in crawled_urls:
                 # Current request parameters
                 params = dict(parse_qsl(urlsplit(url).query))
