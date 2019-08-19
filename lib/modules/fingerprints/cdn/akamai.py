@@ -12,7 +12,7 @@ class Akamai(FingerprintPlugin):
     level = Risk.NO_DANGER
 
     def process(self, headers, content):
-        request = Services.get('request_factory')
+        request = Services.get("request_factory")
         hostname = urlparse(request.url).hostname
         try:
             resolver = Resolver(configure=False)
@@ -20,7 +20,7 @@ class Akamai(FingerprintPlugin):
             resolver.timeout = 2
             resolver.lifetime = 2
 
-            dns_query = resolver.query(hostname + ".edgekey.net", 'A')
+            dns_query = resolver.query(hostname + ".edgekey.net", "A")
 
             if len(dns_query) > 0:
                 return "Akamai CDN"

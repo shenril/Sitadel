@@ -2,10 +2,13 @@ import re
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from lib.utils.container import Services
+from lib.config.settings import Risk
 from .. import AttackPlugin
 
 
 class Sql(AttackPlugin):
+    level = Risk.DANGEROUS
+
     def dberror(self, data):
         if re.search(
             r"supplied argument is not a valid MySQL|Column count doesn\'t match value count at row|mysql_fetch_array()|on MySQL result index|You have an error in your SQL syntax;|You have an error in your SQL syntax near|MySQL server version for the right syntax to use|\[MySQL]\[ODBC|Column count doesn\'t match|valid MySQL result|MySqlClient.",

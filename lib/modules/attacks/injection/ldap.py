@@ -2,10 +2,13 @@ import re
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from lib.utils.container import Services
+from lib.config.settings import Risk
 from .. import AttackPlugin
 
 
 class LDAP(AttackPlugin):
+    level = Risk.DANGEROUS
+
     def errors(self, data):
         error = (
             "supplied argument is not a valid ldap",

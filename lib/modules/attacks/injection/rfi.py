@@ -2,10 +2,13 @@ import re
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from lib.utils.container import Services
+from lib.config.settings import Risk
 from .. import AttackPlugin
 
 
 class Rfi(AttackPlugin):
+    level = Risk.DANGEROUS
+
     def process(self, start_url, crawled_urls):
         output = Services.get("output")
         request = Services.get("request_factory")

@@ -3,10 +3,13 @@ import subprocess
 from urllib.parse import urlparse
 
 from lib.utils.container import Services
+from lib.config.settings import Risk
 from .. import AttackPlugin
 
 
 class Crime(AttackPlugin):
+    level = Risk.DANGEROUS
+
     def process(self, start_url, crawled_urls):
         output = Services.get("output")
         logger = Services.get("logger")
@@ -16,7 +19,6 @@ class Crime(AttackPlugin):
         port = "443"
         try:
             ip += socket.gethostbyname(urlparse(start_url).hostname)
-            print(ip)
             socket.inet_aton(ip)
             r = subprocess.Popen(
                 [
