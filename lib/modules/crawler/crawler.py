@@ -32,29 +32,36 @@ class SitadelSpider(CrawlSpider):
 
 
 def crawl(url, user_agent):
-    output = Services.get("output")
+    try:
+        output = Services.get("output")
 
-    # Settings for the crawler
-    settings = get_project_settings()
-    settings.set("USER_AGENT", user_agent)
-    settings.set("LOG_LEVEL", "CRITICAL")
-    settings.set("RETRY_ENABLED", False)
-    settings.set("CONCURRENT_REQUESTS", 15)
+        # Settings for the crawler
+        settings = get_project_settings()
+        settings.set("USER_AGENT", user_agent)
+        settings.set("LOG_LEVEL", "CRITICAL")
+        settings.set("RETRY_ENABLED", False)
+        settings.set("CONCURRENT_REQUESTS", 15)
 
-    # Create the process that will perform the crawl
-    output.info("Start crawling the target website")
-    process = CrawlerProcess(settings)
-    allowed_domains.append(str(urlparse(url).hostname))
-    process.crawl(SitadelSpider, start_urls=[str(url)], allowed_domains=allowed_domains)
-    process.start()
+        # Create the process that will perform the crawl
+        output.info("Start crawling the target website")
+        process = CrawlerProcess(settings)
+        allowed_domains.append(str(urlparse(url).hostname))
+        process.crawl(
+            SitadelSpider, start_urls=[str(url)], allowed_domains=allowed_domains
+        )
+        process.start()
 
-    # Clean the results
-    clean_urls = []
-    for u in urls:
-        try:
-            new_url = urlparse(u).geturl()
-            clean_urls.append(new_url)
-        except ValueError:
-            continue
+        # Clean the results
+        clean_urls = []
+        for u in urls:
+            try:
+                new_url = urlparse(u).geturl()
+                clean_urls.append(new_url)
+            except ValueError:
+                continue
 
-    return clean_urls
+        return clean_urls
+    except KeyboardInterrupt:
+        process.stop()
+        raise
+

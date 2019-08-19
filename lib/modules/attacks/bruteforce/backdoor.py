@@ -35,3 +35,4 @@ class Backdoor(AttackPlugin):
                         pass
                 except KeyboardInterrupt:
                     executor.shutdown()
+                    raise

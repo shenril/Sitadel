@@ -36,4 +36,5 @@ class Log(AttackPlugin):
                         pass
                 except KeyboardInterrupt:
                     executor.shutdown()
+                    raise
 

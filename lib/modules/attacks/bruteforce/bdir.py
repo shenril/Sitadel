@@ -42,4 +42,5 @@ class Bdir(AttackPlugin):
                     pass
             except KeyboardInterrupt:
                 executor.shutdown()
+                raise
 

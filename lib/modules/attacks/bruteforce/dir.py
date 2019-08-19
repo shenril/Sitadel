@@ -43,4 +43,5 @@ class Dir(AttackPlugin):
                         pass
                 except KeyboardInterrupt:
                     executor.shutdown()
+                    raise
 
