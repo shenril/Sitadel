@@ -8,7 +8,8 @@ from scrapy.utils.project import get_project_settings
 
 from lib.utils.container import Services
 
-urls = []
+urls = set()
+allowed_domains = []
 
 
 class SitadelSpider(CrawlSpider):
@@ -18,18 +19,16 @@ class SitadelSpider(CrawlSpider):
         Rule(
             LinkExtractor(canonicalize=True, unique=True),
             follow=True,
-            callback="parse_items",
+            process_links="parse_items",
         )
     ]
 
     # Method for parsing items
-    def parse_items(self, response):
-        links = LinkExtractor(canonicalize=True, unique=True).extract_links(response)
+    def parse_items(self, links):
         for link in links:
-            for allowed_domain in super.allowed_domains:
-                if urlparse(link.url).netloc == allowed_domain:
-                    urls.append(link.url)
-                    yield scrapy.Request(link.url, callback=self.parse)
+            if urlparse(link.url).netloc in allowed_domains:
+                urls.add(link.url)
+                yield link
 
 
 def crawl(url, user_agent):
@@ -39,21 +38,23 @@ def crawl(url, user_agent):
     settings = get_project_settings()
     settings.set("USER_AGENT", user_agent)
     settings.set("LOG_LEVEL", "CRITICAL")
+    settings.set("RETRY_ENABLED", False)
+    settings.set("CONCURRENT_REQUESTS", 15)
 
     # Create the process that will perform the crawl
     output.info("Start crawling the target website")
     process = CrawlerProcess(settings)
-    domain = urlparse(url).hostname
-    process.crawl(SitadelSpider, start_urls=[str(url)], allowed_domains=[str(domain)])
+    allowed_domains.append(str(urlparse(url).hostname))
+    process.crawl(SitadelSpider, start_urls=[str(url)], allowed_domains=allowed_domains)
     process.start()
 
     # Clean the results
-    clean_urls = set()
+    clean_urls = []
     for u in urls:
         try:
             new_url = urlparse(u).geturl()
-            clean_urls.add(new_url)
+            clean_urls.append(new_url)
         except ValueError:
             continue
 
-    return list(clean_urls)
+    return clean_urls
