@@ -5,12 +5,14 @@ from lib.utils.container import Services
 
 def test_container():
     Services.register("datastore", "hello")
-    assert Services.get("datastore") == "hello"
+    if Services.get("datastore") != "hello":
+        raise AssertionError
 
     a = "singleton"
 
     Services.register("singleton", a)
-    assert Services.get("singleton") == a
+    if Services.get("singleton") != a:
+        raise AssertionError
 
 
 def test_bad_service():
@@ -18,4 +20,5 @@ def test_bad_service():
         Services.get("example")
 
     Services.register("example", "test")
-    assert Services.get("example") is not None
+    if Services.get("example") is None:
+        raise AssertionError

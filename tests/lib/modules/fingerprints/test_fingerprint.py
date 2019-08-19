@@ -12,14 +12,17 @@ from lib.request.request import SingleRequest
 
 def test_fingerprint_plugin():
     f = FingerprintPlugin()
-    assert f.level == Risk.NO_DANGER
+    if f.level != Risk.NO_DANGER:
+        raise AssertionError
 
-    assert hasattr(f, 'process')
+    if not hasattr(f, "process"):
+        raise AssertionError
 
     with pytest.raises(NotImplementedError):
         f.process(headers=None, content=None)
 
-    assert f.__repr__() == "Modules"
+    if f.__repr__() != "Modules":
+        raise AssertionError
 
 
 def test_new_fingerprint_plugin():
@@ -32,9 +35,12 @@ def test_new_fingerprint_plugin():
             pass
 
     dangerous = DangerousFingerPrintPlugin()
-    assert dangerous is not None
-    assert dangerous.level == Risk.DANGEROUS
-    assert dangerous.plugins == []
+    if dangerous is None:
+        raise AssertionError
+    if dangerous.level != Risk.DANGEROUS:
+        raise AssertionError
+    if dangerous.plugins != []:
+        raise AssertionError
 
     class GoodFingerPrintPlugin(FingerprintPlugin):
         level = Risk.NO_DANGER
@@ -43,22 +49,38 @@ def test_new_fingerprint_plugin():
             pass
 
     good = GoodFingerPrintPlugin()
-    assert good is not None
-    assert good.level == Risk.NO_DANGER
-    assert good.plugins != []
-    assert id(good.plugins[0]) == id(GoodFingerPrintPlugin)
+    if good is None:
+        raise AssertionError
+    if good.level != Risk.NO_DANGER:
+        raise AssertionError
+    if good.plugins == []:
+        raise AssertionError
+    if id(good.plugins[0]) != id(GoodFingerPrintPlugin):
+        raise AssertionError
 
 
 def test_fingerprint_launcher():
+    Services.register("output", Output())
+    Services.register("request_factory", SingleRequest())
     f = Fingerprints(None, None, None, None, None, None)
-    assert hasattr(f, 'run')
+    if not hasattr(f, "run"):
+        raise AssertionError
+
 
 @pytest.mark.dangerous
 def test_current_plugins():
-    test_url="http://localhost"
+    test_url = "http://localhost"
     settings.from_yaml("tests/lib/config/test_fingerprint_config.yml")
     Services.register("logger", logging.getLogger("sitadelLog"))
     Services.register("output", Output())
-    Services.register("request_factory",SingleRequest(url=test_url, agent="Sitadel"))
+    Services.register("request_factory", SingleRequest(url=test_url, agent="Sitadel"))
     plugins = settings.fingerprint_plugins
-    Fingerprints(agent="Sitadel",proxy=None,redirect=None,timeout=None,url=test_url,cookie=None).run(plugins)
+    Fingerprints(
+        agent="Sitadel",
+        proxy=None,
+        redirect=None,
+        timeout=None,
+        url=test_url,
+        cookie=None,
+    ).run(plugins)
+

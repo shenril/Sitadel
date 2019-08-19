@@ -12,14 +12,17 @@ from lib.request.request import SingleRequest
 
 def test_attack_plugin():
     f = AttackPlugin()
-    assert f.level == Risk.NOISY
+    if f.level != Risk.NOISY:
+        raise AssertionError
 
-    assert hasattr(f, 'process')
+    if not hasattr(f, "process"):
+        raise AssertionError
 
     with pytest.raises(NotImplementedError):
         f.process(start_url=None, crawled_urls=None)
 
-    assert f.__repr__() == "Modules"
+    if f.__repr__() != "Modules":
+        raise AssertionError
 
 
 def test_new_attack_plugin():
@@ -32,9 +35,12 @@ def test_new_attack_plugin():
             pass
 
     dangerous = DangerousAttackPlugin()
-    assert dangerous is not None
-    assert dangerous.level == Risk.DANGEROUS
-    assert dangerous.plugins == []
+    if dangerous is None:
+        raise AssertionError
+    if dangerous.level != Risk.DANGEROUS:
+        raise AssertionError
+    if dangerous.plugins != []:
+        raise AssertionError
 
     class GoodAttackPlugin(AttackPlugin):
         level = Risk.NO_DANGER
@@ -43,10 +49,14 @@ def test_new_attack_plugin():
             pass
 
     good = GoodAttackPlugin()
-    assert good is not None
-    assert good.level == Risk.NO_DANGER
-    assert good.plugins != []
-    assert id(good.plugins[0]) == id(GoodAttackPlugin)
+    if good is None:
+        raise AssertionError
+    if good.level != Risk.NO_DANGER:
+        raise AssertionError
+    if good.plugins == []:
+        raise AssertionError
+    if id(good.plugins[0]) != id(GoodAttackPlugin):
+        raise AssertionError
 
 
 def test_attack_launcher():
@@ -54,15 +64,17 @@ def test_attack_launcher():
     Services.register("output", Output())
 
     f = Attacks(None, None)
-    assert hasattr(f, 'run')
+    if not hasattr(f, "run"):
+        raise AssertionError
+
 
 @pytest.mark.dangerous
 def test_current_plugins():
-    test_url="http://localhost"
+    test_url = "http://localhost"
     settings.from_yaml("tests/lib/config/test_attack_config.yml")
     Services.register("datastore", Datastore(settings.datastore))
     Services.register("logger", logging.getLogger("sitadelLog"))
     Services.register("output", Output())
-    Services.register("request_factory",SingleRequest(url=test_url, agent="Sitadel"))
+    Services.register("request_factory", SingleRequest(url=test_url, agent="Sitadel"))
     plugins = settings.attack_plugins
     Attacks(test_url, [test_url]).run(plugins)
