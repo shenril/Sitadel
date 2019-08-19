@@ -1,8 +1,11 @@
+
 # Sitadel - Web Application Security Scanner
+
  ![python3](https://img.shields.io/badge/python-3.6-green.svg) [![Build Status](https://travis-ci.org/shenril/Sitadel.svg?branch=master)](https://travis-ci.org/shenril/Sitadel) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
 
 Sitadel is basically an update for WAScan making it compatible for python >= 3.4
 It allows more flexibility for you to write new modules and implement new features :
+
 - Frontend framework detection
 - Content Delivery Network detection
 - Define Risk Level to allow for scans
@@ -10,17 +13,20 @@ It allows more flexibility for you to write new modules and implement new featur
 - Docker image available to build and run
 
 ## Requirement Warning
+
  This project **ONLY** supports python `>= 3.4`. There will be no backport to 2.7 
 
 ## Installation
-```
-$ git clone https://github.com/shenril/Sitadel.git
-$ cd Sitadel
-$ pip3 install .
-$ python sitadel.py --help
+
+```bash
+git clone https://github.com/shenril/Sitadel.git
+cd Sitadel
+pip3 install .
+python sitadel.py --help
 ```
 
 ## Features
+
 - Fingerprints
   - Server
   - Web Frameworks (CakePHP,CherryPy,...)
@@ -33,7 +39,6 @@ $ python sitadel.py --help
   - Content Delivery Networks (CDN)
 
 - Attacks:
-
   - Bruteforce
     - Admin Interface
     - Common Backdoors
@@ -68,11 +73,11 @@ $ python sitadel.py --help
     - Crime (SPDY) (CVE-2012-4929)
     - Struts-Shock
 
-
 ## Example
+
 Simple run
 
-`python sitadel http://website.com `
+`python sitadel http://website.com`
 
 Run with risk level at DANGEROUS and do not follow redirections
 
@@ -83,6 +88,7 @@ Run specifics modules only and full verbosity
 `python sitadel http://website.com -a bruteforce -f header server -v`
 
 ## Run with docker
+
 `docker build -t sitadel .`
 
 `docker run sitadel http://example.com`
