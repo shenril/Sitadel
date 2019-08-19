@@ -3,6 +3,9 @@ from lib.utils import manager
 
 def test_manager():
     ma = manager
-    assert hasattr(ma, 'attacks')
-    assert hasattr(ma, 'crawl')
-    assert hasattr(ma, 'fingerprints')
+    if not hasattr(ma, "attacks"):
+        raise AssertionError
+    if not hasattr(ma, "crawl"):
+        raise AssertionError
+    if not hasattr(ma, "fingerprints"):
+        raise AssertionError
