@@ -1,11 +1,9 @@
 from urllib.parse import urlparse
 
-import scrapy
 from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.utils.project import get_project_settings
-from scrapy.exceptions import CloseSpider
 
 from lib.utils.container import Services
 

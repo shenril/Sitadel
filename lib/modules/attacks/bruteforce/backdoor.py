@@ -1,6 +1,5 @@
 from urllib.parse import urljoin
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import concurrent.futures.thread
 from lib.utils.container import Services
 from .. import AttackPlugin
 
