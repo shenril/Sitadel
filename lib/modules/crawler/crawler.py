@@ -5,6 +5,7 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.utils.project import get_project_settings
+from scrapy.exceptions import CloseSpider
 
 from lib.utils.container import Services
 
@@ -59,8 +60,8 @@ def crawl(url, user_agent):
                 clean_urls.append(new_url)
             except ValueError:
                 continue
-
         return clean_urls
+
     except KeyboardInterrupt:
         process.stop()
         raise

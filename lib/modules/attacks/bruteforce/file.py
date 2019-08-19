@@ -1,5 +1,7 @@
 from urllib.parse import urljoin
-from concurrent.futures import ThreadPoolExecutor as PoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import concurrent.futures.thread
+
 from lib.utils.container import Services
 from .. import AttackPlugin
 
@@ -30,11 +32,13 @@ class File(AttackPlugin):
             urls = map(lambda filex: urljoin(str(start_url), str(filex)), dbfiles)
             # We launch ThreadPoolExecutor with max_workers to None to get default optimization
             # https://docs.python.org/3/library/concurrent.futures.html
-            with PoolExecutor(max_workers=None) as executor:
+            with ThreadPoolExecutor(max_workers=None) as executor:
+                futures = [executor.submit(self.check_url, start_url) for url in urls]
                 try:
-                    for _ in executor.map(self.check_url, urls):
-                        pass
+                    for future in as_completed(futures):
+                        future.result()
                 except KeyboardInterrupt:
-                    executor.shutdown()
+                    concurrent.futures.thread._threads_queues.clear()
+                    executor._threads.clear()
                     raise
 

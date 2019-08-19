@@ -9,7 +9,7 @@
 import argparse
 import logging
 import sys
-
+import signal
 from lib import __version__
 from lib.config import settings
 from lib.config.settings import Risk
@@ -147,23 +147,30 @@ class Sitadel(object):
 
         # Display target and scan starting time
         self.bn.preamble(self.url)
+        # Get the default signal handler for SIGINT(KeyboardInterrupt)
+        original_sigint_handler = signal.getsignal(signal.SIGINT)
+        try:
+            # Run the fingerprint modules
+            self.ma.fingerprints(
+                args.fingerprint,
+                args.user_agent,
+                args.proxy,
+                args.redirect,
+                args.timeout,
+                self.url,
+                args.cookie,
+            )
 
-        # Run the fingerprint modules
-        self.ma.fingerprints(
-            args.fingerprint,
-            args.user_agent,
-            args.proxy,
-            args.redirect,
-            args.timeout,
-            self.url,
-            args.cookie,
-        )
+            # Run the crawler to discover urls
+            discovered_urls = self.ma.crawler(self.url, args.user_agent)
 
-        # Run the crawler to discover urls
-        discovered_urls = self.ma.crawler(self.url, args.user_agent)
+            # Hotfix on KeyboardInterrupt being redirected to scrapy crawler process
+            signal.signal(signal.SIGINT, original_sigint_handler)
 
-        # Run the attack modules on discovered urls
-        self.ma.attacks(args.attack, self.url, discovered_urls)
+            # Run the attack modules on discovered urls
+            self.ma.attacks(args.attack, self.url, discovered_urls)
+        except KeyboardInterrupt:
+            raise
 
 
 if __name__ == "__main__":
