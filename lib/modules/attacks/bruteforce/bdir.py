@@ -44,6 +44,5 @@ class Bdir(AttackPlugin):
                 for future in as_completed(futures):
                     future.result()
             except KeyboardInterrupt:
-                concurrent.futures.thread._threads_queues.clear()
-                executor._threads.clear()
+                executor.shutdown(False)
                 raise

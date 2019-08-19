@@ -147,8 +147,6 @@ class Sitadel(object):
 
         # Display target and scan starting time
         self.bn.preamble(self.url)
-        # Get the default signal handler for SIGINT(KeyboardInterrupt)
-        original_sigint_handler = signal.getsignal(signal.SIGINT)
         try:
             # Run the fingerprint modules
             self.ma.fingerprints(
@@ -165,7 +163,7 @@ class Sitadel(object):
             discovered_urls = self.ma.crawler(self.url, args.user_agent)
 
             # Hotfix on KeyboardInterrupt being redirected to scrapy crawler process
-            signal.signal(signal.SIGINT, original_sigint_handler)
+            signal.signal(signal.SIGINT, signal.default_int_handler)
 
             # Run the attack modules on discovered urls
             self.ma.attacks(args.attack, self.url, discovered_urls)
