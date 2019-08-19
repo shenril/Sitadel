@@ -7,12 +7,20 @@ assignees: shenril
 
 ---
 
-**Environment :**
- - OS: [e.g. Windows,Linux,Mac]
- - Python version - Version [e.g. 22]
+## Environment
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+- OS: [e.g. Windows,Linux,Mac]
+- Python version [e.g. 3.5, 3.6]
+- Sitadel version
 
-**To Reproduce**
+## Expected Behavior
+
+Tell us what should happen
+
+## Current Behavior
+
+Tell us what happens instead of the expected behavior
+
+## To Reproduce
+
 Steps to reproduce the behavior:
