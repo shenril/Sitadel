@@ -23,12 +23,12 @@ class SitadelSpider(CrawlSpider):
     ]
 
     # Method for parsing items
-    def parse_items(self, links):
+    @classmethod
+    def parse_items(cls, links):
         for link in links:
             if urlparse(link.url).netloc in allowed_domains:
                 urls.add(link.url)
                 yield link
-
 
 def crawl(url, user_agent):
     try:

@@ -24,11 +24,13 @@ class Banner:
         print(self.g + "~/#" + self.e + " https://github.com/shenril/Sitadel" + self.g + " #\\~" + self.e)
         print("\n")
 
-    def preamble(self, url):
+    @classmethod
+    def preamble(cls, url):
         print('URL: %s' % url)
         print('---------  Scan Started: %s ---------' % (time.strftime('%d/%m/%Y %H:%M:%S')))
-    
-    def postscript(self):
+
+    @classmethod
+    def postscript(cls):
         print('---------  Scan Finished: %s ---------' % (time.strftime('%d/%m/%Y %H:%M:%S')))
 
     def version(self):
