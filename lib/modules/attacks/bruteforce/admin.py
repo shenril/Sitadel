@@ -1,32 +1,44 @@
 from urllib.parse import urljoin
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from lib.config.settings import Risk
 from lib.utils.container import Services
 from .. import AttackPlugin
 
 
 class Admin(AttackPlugin):
-    def process(self, start_url, crawled_urls):
-        output = Services.get("output")
-        datastore = Services.get("datastore")
-        request = Services.get("request_factory")
-        logger = Services.get("logger")
+    output = Services.get("output")
+    datastore = Services.get("datastore")
+    request = Services.get("request_factory")
+    logger = Services.get("logger")
 
-        output.info("Checking admin interfaces...")
-        with datastore.open("admin.txt", "r") as db:
+    def check_url(self, url):
+        try:
+            self.output.debug("Testing: %s" % url)
+            resp = self.request.send(url=url, method="HEAD", payload=None, headers=None)
+            if resp.status_code == 200:
+                if resp.url == url.replace(" ", "%20"):
+                    self.output.finding("Found admin panel at %s" % resp.url)
+        except Exception as e:
+            self.logger.error(e)
+            self.output.error("Error occured\nAborting this attack...\n")
+            self.output.debug("Traceback: %s" % e)
+            return
+
+    def process(self, start_url, crawled_urls):
+        self.output.info("Checking admin interfaces...")
+        with self.datastore.open("admin.txt", "r") as db:
             dbfiles = [x.strip() for x in db.readlines()]
-            try:
-                for adminpath in dbfiles:
-                    url = urljoin(str(start_url), str(adminpath))
-                    output.debug("Testing: %s" % url)
-                    resp = request.send(
-                        url=url, method="HEAD", payload=None, headers=None
-                    )
-                    if resp.status_code == 200:
-                        if resp.url == url.replace(" ", "%20"):
-                            output.finding("Found admin panel at %s" % resp.url)
-            except Exception as e:
-                logger.error(e)
-                output.error("Error occured\nAborting this attack...\n")
-                output.debug("Traceback: %s" % e)
-                return
+            urls = map(
+                lambda adminpath: urljoin(str(start_url), str(adminpath)), dbfiles
+            )
+            # We launch ThreadPoolExecutor with max_workers to None to get default optimization
+            # https://docs.python.org/3/library/concurrent.futures.html
+            with ThreadPoolExecutor(max_workers=None) as executor:
+                futures = [executor.submit(self.check_url, url) for url in urls]
+                try:
+                    for future in as_completed(futures):
+                        future.result()
+                except KeyboardInterrupt:
+                    executor.shutdown(False)
+                    raise
+

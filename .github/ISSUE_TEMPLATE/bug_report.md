@@ -24,3 +24,6 @@ Tell us what happens instead of the expected behavior
 ## To Reproduce
 
 Steps to reproduce the behavior:
+
+- Step1
+- Step2

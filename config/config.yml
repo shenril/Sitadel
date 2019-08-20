@@ -15,18 +15,18 @@ datastore: lib/data
 
 ## List of fingerprint plugins activated
 fingerprint_plugins:
-    - cms
-    - system
-    - framework
-    - frontend
-    - header
-    - lang
-    - server
-    - waf
+  - cms
+  - system
+  - framework
+  - frontend
+  - header
+  - lang
+  - server
+  - waf
 
 ## List of attacks plugins activated
 attack_plugins:
-    - bruteforce
-    - injection
-    - vulns
-    - other
+  - bruteforce # Parrallelized
+  - injection # Parrallelized
+  - vulns
+  - other

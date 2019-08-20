@@ -16,9 +16,9 @@ class XST(AttackPlugin):
                 url=start_url,
                 method="TRACE",
                 payload=None,
-                headers={"Sitadel": "PastaXST"},
+                headers={"Sitadel": "SitadelXST"},
             )
-            if re.search("Sitadel: *?PastaXST", resp.text, re.I):
+            if re.search("Sitadel: *?SitadelXST", resp.text, re.I):
                 output.finding(
                     "That site is may be vulnerable to Cross Site Tracing (XST) vulnerability."
                 )
