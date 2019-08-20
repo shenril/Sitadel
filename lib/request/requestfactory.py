@@ -16,11 +16,14 @@ class RequestFactory:
     def __init__(self):
         pass
 
-    def make_multiple_requests(self, **kwargs):
+    @classmethod
+    def make_multiple_requests(cls, **kwargs):
         return MultipleHTTPRequests(**kwargs)
 
-    def make_single_request(self, **kwargs):
+    @classmethod
+    def make_single_request(cls, **kwargs):
         return SingleHTTPRequest(**kwargs)
 
-    def make_dns_request(self, **kwargs):
+    @classmethod
+    def make_dns_request(cls, **kwargs):
         return DNSRequest(**kwargs)
