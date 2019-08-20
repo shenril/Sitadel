@@ -6,7 +6,6 @@ from lib.config.settings import Risk
 from lib.modules.fingerprints import FingerprintPlugin, Fingerprints
 from lib.utils.container import Services
 from lib.utils.output import Output
-from lib.utils.datastore import Datastore
 from lib.request.request import SingleRequest
 
 

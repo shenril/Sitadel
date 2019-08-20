@@ -40,4 +40,4 @@ def test_yaml_config_file():
     if settings.plugins[0] != "test-plugin":
         raise AssertionError
     with pytest.raises(IndexError):
-        settings.plugins[1]
+        dir(settings.plugins[1])

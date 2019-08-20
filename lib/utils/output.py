@@ -14,25 +14,25 @@ class Output:
 
     def finding(self, value):
         print(
-            "{}[+]{} {}{}{}".format(Output.g, Output.e, Output.w, value, Output.e),
+            "{}[+]{} {}{}{}".format(self.g, self.e, self.w, value, self.e),
             flush=True,
         )
 
     def error(self, value):
         print(
-            "{}[-]{} {}{}{}".format(Output.r, Output.e, Output.w, value, Output.e),
+            "{}[-]{} {}{}{}".format(self.r, self.e, self.w, value, self.e),
             flush=True,
         )
 
     def info(self, value):
         print(
-            "{}[i]{} {}{}{}".format(Output.y, Output.e, Output.w, value, Output.e),
+            "{}[i]{} {}{}{}".format(self.y, self.e, self.w, value, self.e),
             flush=True,
         )
 
     def debug(self, value):
         if self.level == 1:
             print(
-                "{}[d]{} {}{}{}".format(Output.c, Output.e, Output.w, value, Output.e),
+                "{}[d]{} {}{}{}".format(self.c, self.e, self.w, value, self.e),
                 flush=True,
             )

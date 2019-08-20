@@ -1,4 +1,3 @@
-import re
 from urllib.parse import urljoin
 
 from lib.utils.container import Services
