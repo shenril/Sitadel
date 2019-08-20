@@ -169,6 +169,8 @@ class Sitadel(object):
             self.ma.attacks(args.attack, self.url, discovered_urls)
         except KeyboardInterrupt:
             raise
+        finally:
+            self.bn.postscript()
 
 
 if __name__ == "__main__":
