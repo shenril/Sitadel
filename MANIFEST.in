@@ -1,0 +1,2 @@
+include config/*.yml
+include lib/data/*.txt
