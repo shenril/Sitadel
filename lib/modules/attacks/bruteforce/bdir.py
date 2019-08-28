@@ -25,14 +25,14 @@ class Bdir(AttackPlugin):
     def process(self, start_url, crawled_urls):
         self.output.info("Checking common backup dirs..")
         db = self.datastore.open("bdir.txt", "r")
-        backupdir = [x for x in db.readlines()]
+        backupdir = [x.strip() for x in db.readlines()]
         db1 = self.datastore.open("cdir.txt", "r")
-        commondir = [x for x in db1.readlines()]
+        commondir = [x.strip() for x in db1.readlines()]
 
         urls = []
         for d in commondir:
             for b in backupdir:
-                bdir = b.replace("[name]", d.strip())
+                bdir = b.replace("[name]", d)
                 urls.append(urljoin(str(start_url), str(bdir)))
         # We launch ThreadPoolExecutor with max_workers to None to get default optimization
         # https://docs.python.org/3/library/concurrent.futures.html
