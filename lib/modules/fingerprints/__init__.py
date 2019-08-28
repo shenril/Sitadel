@@ -23,6 +23,7 @@ class Fingerprints:
     def __init__(self, agent, proxy, redirect, timeout, url, cookie):
         self.url = url
         self.cookie = cookie
+        self.redirect=redirect
         self.output = Services.get("output")
         self.request = Services.get("request_factory")
 
@@ -43,6 +44,7 @@ class Fingerprints:
                 url=self.url,
                 method="GET",
                 payload=None,
+                redirect=self.redirect,
                 headers=None,
                 cookies=self.cookie,
             )
