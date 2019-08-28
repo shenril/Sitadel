@@ -7,9 +7,6 @@ import urllib3
 from . import ragent as ragent
 from lib.utils.container import Services
 
-
-# TODO Replace requests with Octopus-http to parallel the requests
-# @ref https://github.com/heynemann/octopus
 # Create a RequestFactory with getSingleRequest, getParallelRequests+enqueue
 class SingleRequest:
     def __init__(self, **kwargs):

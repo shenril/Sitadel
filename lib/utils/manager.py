@@ -4,15 +4,11 @@ from lib.modules.crawler.crawler import crawl
 from lib.modules.fingerprints import Fingerprints
 
 
-def fingerprints(modules, agent, proxy, redirect, timeout, url, cookie):
+def fingerprints(modules, url, cookie):
     plugins = settings.fingerprint_plugins
     if modules is not None:
         plugins = modules
     Fingerprints(
-        agent=agent,
-        proxy=proxy,
-        redirect=redirect,
-        timeout=timeout,
         url=url,
         cookie=cookie
     ).run(plugins)

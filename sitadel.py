@@ -151,10 +151,6 @@ class Sitadel(object):
             # Run the fingerprint modules
             self.ma.fingerprints(
                 args.fingerprint,
-                args.user_agent,
-                args.proxy,
-                args.redirect,
-                args.timeout,
                 self.url,
                 args.cookie,
             )

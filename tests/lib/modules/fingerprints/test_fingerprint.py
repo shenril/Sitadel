@@ -61,7 +61,7 @@ def test_new_fingerprint_plugin():
 def test_fingerprint_launcher():
     Services.register("output", Output())
     Services.register("request_factory", SingleRequest())
-    f = Fingerprints(None, None, None, None, None, None)
+    f = Fingerprints(None, None)
     if not hasattr(f, "run"):
         raise AssertionError
 
@@ -75,10 +75,6 @@ def test_current_plugins():
     Services.register("request_factory", SingleRequest(url=test_url, agent="Sitadel"))
     plugins = settings.fingerprint_plugins
     Fingerprints(
-        agent="Sitadel",
-        proxy=None,
-        redirect=None,
-        timeout=None,
         url=test_url,
         cookie=None,
     ).run(plugins)

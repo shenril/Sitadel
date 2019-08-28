@@ -20,10 +20,11 @@ class FingerprintPlugin(metaclass=IPlugin):
 
 
 class Fingerprints:
-    def __init__(self, agent, proxy, redirect, timeout, url, cookie):
+    def __init__(self, url, cookie):
         self.url = url
         self.cookie = cookie
         self.output = Services.get("output")
+        self.logger = Services.get("logger")
         self.request = Services.get("request_factory")
 
     def run(self, plugins_activated):
@@ -62,6 +63,7 @@ class Fingerprints:
                         )
                     )
 
-        except Exception:
+        except Exception as e:
+            self.logger.error(e)
             self.output.error("Error occured\nAborting fingerprint...\n")
             return
