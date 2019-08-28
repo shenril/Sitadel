@@ -1,10 +1,12 @@
 import re
 
 from lib.modules.fingerprints import FingerprintPlugin
-from lib.utils.output import Output
+from lib.utils.container import Services
 
 
 class Headers(FingerprintPlugin):
+    output = Services.get("output")
+    logger = Services.get("logger")
     def process(self, headers, content):
         fields = ('Accept',
                   'Accept-Charset',
@@ -87,16 +89,16 @@ class Headers(FingerprintPlugin):
                   )
 
         if not re.search(r'X-Frame-Options', str(headers.keys()), re.I):
-            Output().finding('X-Frame-Options header is not present.')
+            self.output.finding('X-Frame-Options header is not present.')
 
         if not re.search(r'Strict-Transport-Security', str(headers.keys()), re.I):
-            Output().finding('Strict-Transport-Security header is not present.')
+            self.output.finding('Strict-Transport-Security header is not present.')
 
         if not re.search(r'x-xss-protection', str(headers.keys()), re.I):
-            Output().finding('X-XSS-Protection header is not present.')
+            self.output.finding('X-XSS-Protection header is not present.')
         try:
             for key in headers.keys():
                 if key not in fields:
-                    Output().finding('Uncommon header "%s" found, with contents: %s' % (key, headers[key]))
+                    self.output.finding('Uncommon header "%s" found, with contents: %s' % (key, headers[key]))
         except Exception as e:
-            print(e)
+            self.logger.error(e)

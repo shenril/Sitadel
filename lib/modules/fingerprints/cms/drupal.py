@@ -1,9 +1,11 @@
 import re
 
 from lib.modules.fingerprints import FingerprintPlugin
+from lib.utils.container import Services
 
 
 class Drupal(FingerprintPlugin):
+    logger = Services.get("logger")
     def process(self, headers, content):
         _ = False
         try:
@@ -14,4 +16,4 @@ class Drupal(FingerprintPlugin):
             if _:
                 return "Drupal"
         except Exception as e:
-            print(e)
+            self.logger.error(e)
