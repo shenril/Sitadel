@@ -22,6 +22,7 @@ class AttackPlugin(metaclass=IPlugin):
 class Attacks:
     def __init__(self, start_url, crawled_urls):
         self.output = Services.get("output")
+        self.logger = Services.get("logger")
         self.start_url = start_url
         self.crawled_urls = crawled_urls
 
@@ -51,4 +52,5 @@ class Attacks:
                     )
 
         except Exception as e:
-            raise (e)
+            self.logger.error(e)
+            raise e
