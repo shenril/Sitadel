@@ -1,9 +1,10 @@
 import re
 
 from lib.modules.fingerprints import FingerprintPlugin
-
+from lib.utils.container import Services
 
 class Magento(FingerprintPlugin):
+    logger = Services.get("logger")
     def process(self, headers, content):
         _ = False
         try:
@@ -15,4 +16,4 @@ class Magento(FingerprintPlugin):
                 if _:
                     return "Magento"
         except Exception as e:
-            print(e)
+            self.logger.error(e)

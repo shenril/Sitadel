@@ -1,9 +1,10 @@
 import re
 
 from lib.modules.fingerprints import FingerprintPlugin
-
+from lib.utils.container import Services
 
 class Wordpress(FingerprintPlugin):
+    logger = Services.get("logger")
     def process(self, headers, content):
         _ = False
         try:
@@ -12,4 +13,4 @@ class Wordpress(FingerprintPlugin):
             if _:
                 return "Wordpress"
         except Exception as e:
-            print(e)
+            self.logger.error(e)
