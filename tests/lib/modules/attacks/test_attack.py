@@ -62,6 +62,7 @@ def test_new_attack_plugin():
 def test_attack_launcher():
     # Add services container for running
     Services.register("output", Output())
+    Services.register("logger", logging.getLogger("sitadelLog"))
 
     f = Attacks(None, None)
     if not hasattr(f, "run"):
