@@ -146,15 +146,15 @@ sitadel.py [-h] [-r {0,1,2}] [-ua USER_AGENT] [--redirect]
 
 Simple run
 
-`python sitadel http://website.com`
+`python3 sitadel http://website.com`
 
 Run with risk level at DANGEROUS and do not follow redirections
 
-`python sitadel http://website.com -r 2 --no-redirect`
+`python3 sitadel http://website.com -r 2 --no-redirect`
 
 Run specifics modules only and full verbosity
 
-`python sitadel http://website.com -a bruteforce -f header server -v`
+`python3 sitadel http://website.com -a bruteforce -f header server -v`
 
 ## Run with docker
 
