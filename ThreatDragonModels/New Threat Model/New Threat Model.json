@@ -1,0 +1,16 @@
+{
+  "version": "2.1.2",
+  "summary": {
+    "title": "New Threat Model",
+    "owner": "shenril",
+    "description": "Website security scanner",
+    "id": 0
+  },
+  "detail": {
+    "contributors": [],
+    "diagrams": [],
+    "diagramTop": 0,
+    "reviewer": "shenril",
+    "threatTop": 0
+  }
+}
