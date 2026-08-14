@@ -1,5 +1,4 @@
 import re
-from urllib.parse import parse_qsl, urlencode, urlsplit
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from lib.utils.container import Services
 from .. import AttackPlugin
@@ -13,23 +12,19 @@ class Xss(AttackPlugin):
 
     def attack(self, payload, url):
         try:
-            # Current request parameters
-            params = dict(parse_qsl(urlsplit(url).query))
-            # Change the value of the parameters with the payload
-            tainted_params = {x: payload for x in params}
-
-            if len(tainted_params) > 0:
-                # Prepare the attack URL
-                attack_url = urlsplit(url).geturl() + urlencode(tainted_params)
+            # Rebuild the URL with the payload injected in every parameter
+            attack_url = self.taint_url(url, payload)
+            if attack_url is not None:
                 self.output.debug("Testing: %s" % attack_url)
                 resp = self.request.send(
                     url=attack_url, method="GET", payload=None, headers=None
                 )
                 if resp.status_code == 200:
-                    if re.search(payload[0], resp.text, re.I):
+                    # Match the payload literally: it is HTML, not a regex
+                    if re.search(re.escape(payload), resp.text, re.I):
                         self.output.finding(
                             "That site may be vulnerable to Cross Site Scripting (XSS) at %s \nInjection: %s"
-                            % (url, payload[0])
+                            % (url, payload)
                         )
         except Exception as e:
             self.logger.error(e)
@@ -39,7 +34,7 @@ class Xss(AttackPlugin):
 
     def process(self, start_url, crawled_urls):
         db = self.datastore.open("xss.txt", "r")
-        dbfiles = [x.split("\n") for x in db]
+        dbfiles = [x.rstrip("\n") for x in db]
         self.output.info("Checking cross site scripting...")
         for payload in dbfiles:
             with ThreadPoolExecutor(max_workers=None) as executor:

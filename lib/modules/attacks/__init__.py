@@ -1,6 +1,7 @@
 import importlib
 import os
 import pkgutil
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from lib.config.settings import Risk
 from lib.utils.container import Services
@@ -10,6 +11,24 @@ from .. import IPlugin
 class AttackPlugin(metaclass=IPlugin):
     # Default risk level for attack modules is NOISY since it sends requests
     level = Risk.NOISY
+
+    @staticmethod
+    def taint_url(url, payload):
+        """Rebuild ``url`` with every query parameter value replaced by ``payload``.
+
+        Returns the tainted URL, or ``None`` when the URL has no query
+        parameters to inject into. The query string is reassembled with
+        ``urlunsplit`` so the separators (``?`` and ``&``) are preserved,
+        instead of blindly concatenating onto the original URL.
+        """
+        parts = urlsplit(url)
+        params = dict(parse_qsl(parts.query))
+        if not params:
+            return None
+        tainted = {name: payload for name in params}
+        return urlunsplit(
+            (parts.scheme, parts.netloc, parts.path, urlencode(tainted), parts.fragment)
+        )
 
     def process(self, start_url, crawled_urls):
         raise NotImplementedError(str(self) + ": Process method not found")
