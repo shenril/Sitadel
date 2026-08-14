@@ -48,6 +48,14 @@ class Fingerprints:
                 cookies=self.cookie,
             )
 
+            # The request layer returns None when the target could not be
+            # reached; abort the fingerprint phase cleanly instead of crashing.
+            if resp is None:
+                self.output.error(
+                    "No response from the target\nAborting fingerprint...\n"
+                )
+                return
+
             # Pass the result over the fingerprint module for processing
             fingerprints = [
                 (p(), p().process(resp.headers, resp.text))
