@@ -98,7 +98,7 @@ python sitadel.py --help
 ## Usage
 
 ```bash
-sitadel.py [-h] [-r {0,1,2}] [-ua USER_AGENT] [--redirect]
+sitadel.py [-h] [-r {0,1,2}] [-ua USER_AGENT] [--random-agent] [--redirect]
            [--no-redirect] [-t TIMEOUT] [-c COOKIE] [-p PROXY]
            [-f FINGERPRINT [MODULE ...]] [-a ATTACK [MODULE ...]]
            [--config CONFIG] [-v] [--version]
@@ -110,6 +110,7 @@ sitadel.py [-h] [-r {0,1,2}] [-ua USER_AGENT] [--redirect]
 | -h, --help         | Display help |
 | -r, --risk {0,1,2}        | Decide the risk level you want Sitadel to run (some attacks won't be executed)          |
 | -ua, --user-agent       | User agent used for the HTTP request of the attacks          |
+| --random-agent      | Use a random User-Agent for each scan request                |
 | --redirect      | Indicates to Sitadel to follow the 302 request for page redirection                                          |
 | --no-redirect             | Indicates to Sitadel **NOT** to follow the 302 request for page redirection                |
 | -t, --timeout                    | Specify the timeout for the HTTP requests to the website                                          |

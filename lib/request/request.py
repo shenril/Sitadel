@@ -1,5 +1,3 @@
-import sys
-
 from requests import Request, Session
 from requests import ConnectionError, RequestException, Timeout
 import urllib3
@@ -15,6 +13,7 @@ class SingleRequest:
         self.proxy = None if "proxy" not in kwargs else kwargs["proxy"]
         self.redirect = True if "redirect" not in kwargs else kwargs["redirect"]
         self.timeout = None if "timeout" not in kwargs else kwargs["timeout"]
+        self.random_agent = False if "random_agent" not in kwargs else kwargs["random_agent"]
         self.ruagent = ragent.RandomUserAgent()
 
     def send(self, url, method="GET", payload=None, headers=None, cookies=None):
@@ -54,8 +53,8 @@ class SingleRequest:
             headers = {}
         if cookies is not None:
             cookies = {cookies: ''}
-        if "--random-agent" in sys.argv:
-            headers['User-Agent'] = self.ruagent
+        if self.random_agent:
+            headers['User-Agent'] = ragent.RandomUserAgent()
         else:
             headers['User-Agent'] = self.agent
         # get method

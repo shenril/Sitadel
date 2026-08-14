@@ -74,6 +74,12 @@ class Sitadel(object):
             "-p", "--proxy", help="Proxy to set for the scan HTTP requests"
         )
         parser.add_argument(
+            "--random-agent",
+            dest="random_agent",
+            action="store_true",
+            help="Use a random User-Agent for each scan request",
+        )
+        parser.add_argument(
             "-f", "--fingerprint", nargs="+", help="Fingerprint modules to activate"
         )
         parser.add_argument(
@@ -142,6 +148,7 @@ class Sitadel(object):
                 proxy=args.proxy,
                 redirect=args.redirect,
                 timeout=args.timeout,
+                random_agent=args.random_agent,
             ),
         )
 
