@@ -1,7 +1,7 @@
 import sys
 
 from requests import Request, Session
-from requests import RequestException
+from requests import ConnectionError, RequestException, Timeout
 import urllib3
 
 from . import ragent as ragent
@@ -35,11 +35,17 @@ class SingleRequest:
                 allow_redirects=self.redirect,
                 verify=False)
             return resp
-        except TimeoutError:
+        except Timeout:
+            # requests raises requests.exceptions.Timeout (a RequestException),
+            # not the builtin TimeoutError, so it must be caught explicitly.
             output.error("Timeout error on the URL: %s" % url)
+        except ConnectionError as err:
+            output.error("Connection error on the URL: %s\n {0}\n".format(err) % url)
         except RequestException as err:
             output.error("Error while trying to contact the website: \n {0}\n".format(err))
-            raise(err)
+        # On any handled error return None so callers can degrade gracefully
+        # (a single failing request must never abort the whole scan).
+        return None
 
     def prepare_request(self, url, method, payload, headers, cookies):
         if payload is None:

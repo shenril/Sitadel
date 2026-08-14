@@ -39,3 +39,12 @@ def test_request_send():
         raise AssertionError
     if req.send(url="http://example.com", method="post").request.method != "POST":
         raise AssertionError
+
+
+def test_request_send_returns_none_on_error():
+    # A connection error (nothing listening on this local port) must be
+    # handled and return None rather than raising and aborting the scan.
+    Services.register("output", Output())
+    req = SingleRequest(timeout=2)
+    if req.send(url="http://127.0.0.1:1/") is not None:
+        raise AssertionError
