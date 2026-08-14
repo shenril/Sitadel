@@ -2,6 +2,7 @@ import importlib
 import os
 import pkgutil
 
+from lib.config import settings
 from lib.config.settings import Risk
 from lib.utils.container import Services
 from .. import IPlugin
@@ -10,6 +11,20 @@ from .. import IPlugin
 class FingerprintPlugin(metaclass=IPlugin):
     # Default risk level for fingerprint module is NO DANGER since it only analyze one request response
     level = Risk.NO_DANGER
+
+    @classmethod
+    def enabled(cls):
+        """Registered plugins whose risk level is within the configured risk.
+
+        Filtering is done here, at run time, so changing the risk level (or
+        loading the configuration after the plugins were imported) always
+        takes effect instead of depending on import ordering.
+        """
+        return [
+            plugin
+            for plugin in cls.plugins
+            if getattr(plugin, "level", Risk.NO_DANGER) <= settings.risk
+        ]
 
     def process(self, headers, content):
         raise NotImplementedError(str(self) + ": Process method not found")
@@ -59,7 +74,7 @@ class Fingerprints:
             # Pass the result over the fingerprint module for processing
             fingerprints = [
                 (p(), p().process(resp.headers, resp.text))
-                for p in FingerprintPlugin.plugins
+                for p in FingerprintPlugin.enabled()
             ]
 
             # Display findings for each category of modules

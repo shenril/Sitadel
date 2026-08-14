@@ -28,19 +28,13 @@ def test_attack_plugin():
 def test_new_attack_plugin():
     settings.risk = Risk.NOISY
 
+    before = len(AttackPlugin.plugins)
+
     class DangerousAttackPlugin(AttackPlugin):
         level = Risk.DANGEROUS
 
         def process(self, start_url, crawled_urls):
             pass
-
-    dangerous = DangerousAttackPlugin()
-    if dangerous is None:
-        raise AssertionError
-    if dangerous.level != Risk.DANGEROUS:
-        raise AssertionError
-    if dangerous.plugins != []:
-        raise AssertionError
 
     class GoodAttackPlugin(AttackPlugin):
         level = Risk.NO_DANGER
@@ -48,14 +42,20 @@ def test_new_attack_plugin():
         def process(self, start_url, crawled_urls):
             pass
 
-    good = GoodAttackPlugin()
-    if good is None:
+    # Both plugins are registered unconditionally at definition time.
+    if len(AttackPlugin.plugins) != before + 2:
         raise AssertionError
-    if good.level != Risk.NO_DANGER:
+    if DangerousAttackPlugin not in AttackPlugin.plugins:
         raise AssertionError
-    if good.plugins == []:
+    if GoodAttackPlugin not in AttackPlugin.plugins:
         raise AssertionError
-    if id(good.plugins[0]) != id(GoodAttackPlugin):
+
+    # Risk filtering is applied at run time via enabled(): at NOISY risk the
+    # DANGEROUS plugin is excluded while the NO_DANGER one is kept.
+    enabled = AttackPlugin.enabled()
+    if DangerousAttackPlugin in enabled:
+        raise AssertionError
+    if GoodAttackPlugin not in enabled:
         raise AssertionError
 
 

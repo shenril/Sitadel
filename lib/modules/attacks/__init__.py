@@ -3,6 +3,7 @@ import os
 import pkgutil
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from lib.config import settings
 from lib.config.settings import Risk
 from lib.utils.container import Services
 from .. import IPlugin
@@ -11,6 +12,20 @@ from .. import IPlugin
 class AttackPlugin(metaclass=IPlugin):
     # Default risk level for attack modules is NOISY since it sends requests
     level = Risk.NOISY
+
+    @classmethod
+    def enabled(cls):
+        """Registered plugins whose risk level is within the configured risk.
+
+        Filtering is done here, at run time, so changing the risk level (or
+        loading the configuration after the plugins were imported) always
+        takes effect instead of depending on import ordering.
+        """
+        return [
+            plugin
+            for plugin in cls.plugins
+            if getattr(plugin, "level", Risk.NO_DANGER) <= settings.risk
+        ]
 
     @staticmethod
     def taint_url(url, payload):
@@ -60,7 +75,7 @@ class Attacks:
         try:
             attacks = [
                 (p(), p().process(self.start_url, self.crawled_urls))
-                for p in AttackPlugin.plugins
+                for p in AttackPlugin.enabled()
             ]
             for category, result in attacks:
                 if result is not None:

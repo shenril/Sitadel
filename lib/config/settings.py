@@ -17,12 +17,17 @@ class Risk(IntEnum):
 
 
 class Settings(object):
-    cfg = {}
+    # Safe default risk so plugin filtering works even before a config is
+    # loaded (matches the default shipped in config/config.yml).
+    cfg = {'risk': Risk.NOISY}
 
     _setters = ['risk', 'dns_resolver', 'datastore']
 
     def __getattr__(self, item):
-        return Settings.cfg[item]
+        try:
+            return Settings.cfg[item]
+        except KeyError:
+            raise AttributeError(item)
 
     def __setattr__(self, key, value):
         if key in Settings._setters:
@@ -48,5 +53,10 @@ class Settings(object):
                 config = yaml.load(yamlfile, Loader=yaml.SafeLoader)
                 # Merging the dictionaries and getting result
                 cls.cfg = {**cls.cfg, **config}
+                # Normalize the risk to the Risk enum so comparisons against
+                # plugin levels are consistent regardless of the source (an
+                # int from YAML or a Risk from the CLI).
+                if 'risk' in cls.cfg:
+                    cls.cfg['risk'] = Risk(int(cls.cfg['risk']))
             except yaml.YAMLError as e:
                 print(e)
