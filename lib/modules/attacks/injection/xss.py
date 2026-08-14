@@ -33,18 +33,21 @@ class Xss(AttackPlugin):
             return
 
     def process(self, start_url, crawled_urls):
-        db = self.datastore.open("xss.txt", "r")
-        dbfiles = [x.rstrip("\n") for x in db]
         self.output.info("Checking cross site scripting...")
-        for payload in dbfiles:
-            with ThreadPoolExecutor(max_workers=None) as executor:
-                futures = [
-                    executor.submit(self.attack, payload, url) for url in crawled_urls
-                ]
-        try:
-            for future in as_completed(futures):
-                future.result()
-        except KeyboardInterrupt:
-            executor.shutdown(False)
-            raise
+        with self.datastore.open("xss.txt", "r") as db:
+            payloads = [x.rstrip("\n") for x in db]
+        # Submit the whole payload x url matrix to a single bounded pool so
+        # every task is awaited and interrupts are handled once.
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            futures = [
+                executor.submit(self.attack, payload, url)
+                for payload in payloads
+                for url in crawled_urls
+            ]
+            try:
+                for future in as_completed(futures):
+                    future.result()
+            except KeyboardInterrupt:
+                executor.shutdown(False)
+                raise
 

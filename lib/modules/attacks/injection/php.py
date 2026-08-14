@@ -36,13 +36,13 @@ class Php(AttackPlugin):
     def process(self, start_url, crawled_urls):
         self.output.info("Checking php code injection...")
         payload = "1;phpinfo()"
-        with ThreadPoolExecutor(max_workers=None) as executor:
+        with ThreadPoolExecutor(max_workers=20) as executor:
             futures = [
                 executor.submit(self.attack, payload, url) for url in crawled_urls
             ]
-        try:
-            for future in as_completed(futures):
-                future.result()
-        except KeyboardInterrupt:
-            executor.shutdown(False)
-            raise
+            try:
+                for future in as_completed(futures):
+                    future.result()
+            except KeyboardInterrupt:
+                executor.shutdown(False)
+                raise
