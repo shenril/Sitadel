@@ -27,19 +27,13 @@ def test_fingerprint_plugin():
 def test_new_fingerprint_plugin():
     settings.risk = Risk.NOISY
 
+    before = len(FingerprintPlugin.plugins)
+
     class DangerousFingerPrintPlugin(FingerprintPlugin):
         level = Risk.DANGEROUS
 
         def process(self, headers, content):
             pass
-
-    dangerous = DangerousFingerPrintPlugin()
-    if dangerous is None:
-        raise AssertionError
-    if dangerous.level != Risk.DANGEROUS:
-        raise AssertionError
-    if dangerous.plugins != []:
-        raise AssertionError
 
     class GoodFingerPrintPlugin(FingerprintPlugin):
         level = Risk.NO_DANGER
@@ -47,14 +41,20 @@ def test_new_fingerprint_plugin():
         def process(self, headers, content):
             pass
 
-    good = GoodFingerPrintPlugin()
-    if good is None:
+    # Both plugins are registered unconditionally at definition time.
+    if len(FingerprintPlugin.plugins) != before + 2:
         raise AssertionError
-    if good.level != Risk.NO_DANGER:
+    if DangerousFingerPrintPlugin not in FingerprintPlugin.plugins:
         raise AssertionError
-    if good.plugins == []:
+    if GoodFingerPrintPlugin not in FingerprintPlugin.plugins:
         raise AssertionError
-    if id(good.plugins[0]) != id(GoodFingerPrintPlugin):
+
+    # Risk filtering is applied at run time via enabled(): at NOISY risk the
+    # DANGEROUS plugin is excluded while the NO_DANGER one is kept.
+    enabled = FingerprintPlugin.enabled()
+    if DangerousFingerPrintPlugin in enabled:
+        raise AssertionError
+    if GoodFingerPrintPlugin not in enabled:
         raise AssertionError
 
 
