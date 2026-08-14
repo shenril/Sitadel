@@ -59,6 +59,28 @@ def test_new_attack_plugin():
         raise AssertionError
 
 
+def test_taint_url():
+    from urllib.parse import parse_qsl, urlsplit
+
+    payload = "1' OR '1'='1"
+
+    # Every query parameter value is replaced by the payload, with proper
+    # separators, and the original path/fragment are preserved.
+    tainted = AttackPlugin.taint_url("http://host/path?id=1&q=2#frag", payload)
+    parts = urlsplit(tainted)
+    if parts.path != "/path" or parts.fragment != "frag":
+        raise AssertionError
+    values = dict(parse_qsl(parts.query))
+    if set(values.keys()) != {"id", "q"}:
+        raise AssertionError
+    if any(v != payload for v in values.values()):
+        raise AssertionError
+
+    # URLs without a query string yield nothing to inject into.
+    if AttackPlugin.taint_url("http://host/path", payload) is not None:
+        raise AssertionError
+
+
 def test_attack_launcher():
     # Add services container for running
     Services.register("output", Output())
