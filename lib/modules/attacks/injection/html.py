@@ -34,9 +34,8 @@ class Html(AttackPlugin):
     def process(self, start_url, crawled_urls):
         self.output.info("Checking html injection...")
         payload = '<h1><a href="https://www.github.com/shenril/Sitadel">Click Sitadel!</a></h1>'
-        # We launch ThreadPoolExecutor with max_workers to None to get default optimization
-        # https://docs.python.org/3/library/concurrent.futures.html
-        with ThreadPoolExecutor(max_workers=None) as executor:
+        # Bounded pool to avoid overwhelming the target and the local machine
+        with ThreadPoolExecutor(max_workers=20) as executor:
             futures = [
                 executor.submit(self.attack, payload, url) for url in crawled_urls
             ]
