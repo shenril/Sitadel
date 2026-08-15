@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Sitadel"
+dynamic = ["version"]
+description = "Sitadel Web Application Scanner"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+authors = [{ name = "Shenril", email = "florent.batard@gmail.com" }]
+keywords = ["sitadel", "security", "scanner", "web", "python3"]
+classifiers = [
+    "Topic :: Security",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "requests>=2.31",
+    "urllib3>=2",
+    "pyyaml>=6.0",
+    "colorama>=0.4",
+    "scrapy>=2.11",
+]
+
+[project.optional-dependencies]
+tests = ["pytest", "flake8"]
+
+[project.urls]
+Homepage = "https://github.com/shenril/Sitadel"
+
+[project.scripts]
+sitadel = "sitadel:main"
+
+[tool.setuptools]
+py-modules = ["sitadel"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "lib.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["lib*"]
+
+[tool.setuptools.package-data]
+lib = ["data/*.txt"]

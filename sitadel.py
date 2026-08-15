@@ -44,7 +44,7 @@ class Sitadel(object):
         parser.add_argument(
             "-ua",
             "--user-agent",
-            default="Sitadel " + __version__,
+            default=f"Sitadel {__version__}",
             help="User-agent to set for the scan requests",
         )
         parser.add_argument(
@@ -149,8 +149,13 @@ class Sitadel(object):
             self.bn.postscript()
 
 
-if __name__ == "__main__":
+def main():
+    """Console entry point (see ``[project.scripts]`` in pyproject.toml)."""
     try:
         Sitadel().main()
     except KeyboardInterrupt:
         sys.exit(output.Output().error("Interruption by the user, Quitting..."))
+
+
+if __name__ == "__main__":
+    main()

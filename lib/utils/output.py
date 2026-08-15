@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from colorama import Fore, Style
 
 
@@ -9,30 +11,18 @@ class Output:
     c = Fore.CYAN
     e = Style.RESET_ALL
 
-    def __init__(self, level=0):
+    def __init__(self, level: int = 0):
         self.level = level
 
-    def finding(self, value):
-        print(
-            "{}[+]{} {}{}{}".format(self.g, self.e, self.w, value, self.e),
-            flush=True,
-        )
+    def finding(self, value: str) -> None:
+        print(f"{self.g}[+]{self.e} {self.w}{value}{self.e}", flush=True)
 
-    def error(self, value):
-        print(
-            "{}[-]{} {}{}{}".format(self.r, self.e, self.w, value, self.e),
-            flush=True,
-        )
+    def error(self, value: str) -> None:
+        print(f"{self.r}[-]{self.e} {self.w}{value}{self.e}", flush=True)
 
-    def info(self, value):
-        print(
-            "{}[i]{} {}{}{}".format(self.y, self.e, self.w, value, self.e),
-            flush=True,
-        )
+    def info(self, value: str) -> None:
+        print(f"{self.y}[i]{self.e} {self.w}{value}{self.e}", flush=True)
 
-    def debug(self, value):
+    def debug(self, value: str) -> None:
         if self.level == 1:
-            print(
-                "{}[d]{} {}{}{}".format(self.c, self.e, self.w, value, self.e),
-                flush=True,
-            )
+            print(f"{self.c}[d]{self.e} {self.w}{value}{self.e}", flush=True)
