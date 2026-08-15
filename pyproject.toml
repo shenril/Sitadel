@@ -28,7 +28,8 @@ dependencies = [
     "urllib3>=2",
     "pyyaml>=6.0",
     "colorama>=0.4",
-    "scrapy>=2.11",
+    "aiohttp>=3.9",
+    "selectolax>=0.3",
 ]
 
 [project.optional-dependencies]

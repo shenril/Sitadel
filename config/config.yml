@@ -13,6 +13,17 @@ dns_resolver: 8.8.8.8
 ## Root location for the datafile used by the plugins
 datastore: lib/data
 
+## Crawler tuning
+## URLs are de-duplicated by their parameter signature (scheme, host, path and the
+## set of parameter names), so value permutations like ?id=1 / ?id=2 collapse to a
+## single representative page instead of exploding the crawl.
+crawler:
+  max_depth: 3          # how many link hops from the start URL to follow
+  max_pages: 500        # hard cap on discovered pages
+  concurrency: 20       # simultaneous in-flight requests
+  timeout: 15           # per-request timeout in seconds
+  ignore_params: []     # parameter names dropped before signing (e.g. utm_source)
+
 ## List of fingerprint plugins activated
 fingerprint_plugins:
   - cms
