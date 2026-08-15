@@ -32,7 +32,7 @@ class Admin(AttackPlugin):
             )
             # We launch ThreadPoolExecutor with max_workers to None to get default optimization
             # https://docs.python.org/3/library/concurrent.futures.html
-            with ThreadPoolExecutor(max_workers=None) as executor:
+            with ThreadPoolExecutor(max_workers=20) as executor:
                 futures = [executor.submit(self.check_url, url) for url in urls]
                 try:
                     for future in as_completed(futures):

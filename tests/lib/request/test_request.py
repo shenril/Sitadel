@@ -62,3 +62,27 @@ def test_request_send_returns_none_on_error():
     req = SingleRequest(timeout=2)
     if req.send(url="http://127.0.0.1:1/") is not None:
         raise AssertionError
+
+
+def test_pooled_session_is_reused():
+    Services.register("output", Output())
+    req = SingleRequest()
+    # A single pooled Session is created once and reused across requests.
+    if not isinstance(req.session, requests.Session):
+        raise AssertionError
+    first = req.session
+    req.send(url="http://example.com")
+    req.send(url="http://example.com")
+    if req.session is not first:
+        raise AssertionError
+    # The HTTP adapter is a pooled one (not the requests default of maxsize 10).
+    adapter = req.session.get_adapter("http://example.com")
+    if adapter._pool_maxsize < 20:
+        raise AssertionError
+
+
+def test_tls_verification_is_opt_in():
+    if SingleRequest().verify is not False:
+        raise AssertionError
+    if SingleRequest(verify=True).verify is not True:
+        raise AssertionError
