@@ -3,3 +3,5 @@
 .idea/
 .cache/
 .python-version
+# runtime log
+sitadel.log
