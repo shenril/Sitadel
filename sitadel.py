@@ -15,6 +15,7 @@ from lib.config.settings import Risk
 from lib.request.request import SingleRequest
 from lib.utils import banner, manager, output, validator
 from lib.utils.container import Services
+from lib.report import Findings, write_report
 from lib.utils.datastore import Datastore
 from lib.utils.logs import setup_logging
 from lib.utils.output import Output
@@ -95,6 +96,16 @@ class Sitadel(object):
             "--config", help="Path to the config file", default="config/config.yml"
         )
         parser.add_argument(
+            "-o", "--output", help="Path to write the findings report to"
+        )
+        parser.add_argument(
+            "--format",
+            dest="report_format",
+            choices=["stdout", "json", "html", "sarif"],
+            default="stdout",
+            help="Report format for the findings (default: stdout only)",
+        )
+        parser.add_argument(
             "-v",
             "--verbosity",
             action="count",
@@ -119,6 +130,7 @@ class Sitadel(object):
         Services.register("datastore", Datastore(settings.datastore))
         Services.register("logger", logger)
         Services.register("output", Output())
+        Services.register("findings", Findings())
         Services.register(
             "request_factory",
             SingleRequest(
@@ -153,6 +165,15 @@ class Sitadel(object):
         except KeyboardInterrupt:
             raise
         finally:
+            # Write the findings report (console findings are printed live by
+            # Output.finding regardless of the chosen format).
+            if args.report_format != "stdout":
+                findings = Services.get("findings").all()
+                path = args.output or f"sitadel-report.{args.report_format}"
+                write_report(findings, args.report_format, path)
+                Services.get("output").info(
+                    f"Wrote {len(findings)} finding(s) to {path}"
+                )
             self.bn.postscript()
 
 
