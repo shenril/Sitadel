@@ -57,7 +57,10 @@ setup(
     install_requires=[
         "requests",
         "urllib3",
-        "pyyaml",
+        # PyYAML < 5.3 references collections.Hashable, which was removed in
+        # Python 3.10, crashing config loading. Require a version that works
+        # on modern Python (see issue #47).
+        "pyyaml>=6.0",
         "colorama",
         "scrapy"
     ],
