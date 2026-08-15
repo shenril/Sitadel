@@ -11,9 +11,9 @@
 
 ```
 
- ![python3](https://img.shields.io/badge/python-3.6-green.svg) [![Build Status](https://travis-ci.org/shenril/Sitadel.svg?branch=master)](https://travis-ci.org/shenril/Sitadel) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
+ ![python3](https://img.shields.io/badge/python-3.11%2B-green.svg) [![CI](https://github.com/shenril/Sitadel/actions/workflows/ci.yml/badge.svg)](https://github.com/shenril/Sitadel/actions/workflows/ci.yml) ![license](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)
 
-Sitadel is basically an update for WAScan making it compatible for python >= 3.4
+Sitadel is basically an update for WAScan making it compatible for python >= 3.11
 It allows more flexibility for you to write new modules and implement new features :
 
 - Frontend framework detection
@@ -36,7 +36,7 @@ It allows more flexibility for you to write new modules and implement new featur
 
 ## Requirement Warning
 
- This project **ONLY** supports python `>= 3.4`. There will be no backport to 2.7
+ This project supports python `>= 3.11` (older, End-of-Life versions are no longer supported). There will be no backport to 2.7
 
 ## Installation
 
@@ -44,6 +44,9 @@ It allows more flexibility for you to write new modules and implement new featur
 git clone https://github.com/shenril/Sitadel.git
 cd Sitadel
 pip3 install .
+# run via the installed console command...
+sitadel --help
+# ...or directly from the checkout
 python sitadel.py --help
 ```
 
@@ -147,15 +150,15 @@ sitadel.py [-h] [-r {0,1,2}] [-ua USER_AGENT] [--random-agent] [--redirect]
 
 Simple run
 
-`python3 sitadel http://website.com`
+`sitadel http://website.com`
 
 Run with risk level at DANGEROUS and do not follow redirections
 
-`python3 sitadel http://website.com -r 2 --no-redirect`
+`sitadel http://website.com -r 2 --no-redirect`
 
 Run specifics modules only and full verbosity
 
-`python3 sitadel http://website.com -a bruteforce -f header server -v`
+`sitadel http://website.com -a bruteforce -f header server -v`
 
 ## Run with docker
 

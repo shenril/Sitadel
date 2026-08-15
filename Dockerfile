@@ -1,8 +1,8 @@
-FROM python:3
+FROM python:3.13-slim
 
 WORKDIR /usr/src/app
 COPY . /usr/src/app
 
-RUN pip3 install .
+RUN pip install --no-cache-dir .
 
-ENTRYPOINT ["python", "sitadel.py"]
+ENTRYPOINT ["sitadel"]

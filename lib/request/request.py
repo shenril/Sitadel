@@ -1,87 +1,77 @@
-from requests import Request, Session
-from requests import ConnectionError, RequestException, Timeout
+from __future__ import annotations
+
 import urllib3
+from requests import ConnectionError, Request, RequestException, Session, Timeout
 
-from . import ragent as ragent
 from lib.utils.container import Services
+from . import ragent as ragent
 
-# Create a RequestFactory with getSingleRequest, getParallelRequests+enqueue
+
 class SingleRequest:
-    def __init__(self, **kwargs):
-        self.url = None if "url" not in kwargs else kwargs["url"]
-        self.agent = "Sitadel" if "agent" not in kwargs else kwargs["agent"]
-        self.proxy = None if "proxy" not in kwargs else kwargs["proxy"]
-        self.redirect = True if "redirect" not in kwargs else kwargs["redirect"]
-        self.timeout = None if "timeout" not in kwargs else kwargs["timeout"]
-        self.random_agent = False if "random_agent" not in kwargs else kwargs["random_agent"]
+    def __init__(
+        self,
+        url: str | None = None,
+        agent: str = "Sitadel",
+        proxy: str | None = None,
+        redirect: bool = True,
+        timeout: int | None = None,
+        random_agent: bool = False,
+    ):
+        self.url = url
+        self.agent = agent
+        self.proxy = proxy
+        self.redirect = redirect
+        self.timeout = timeout
+        self.random_agent = random_agent
         self.ruagent = ragent.RandomUserAgent()
 
     def send(self, url, method="GET", payload=None, headers=None, cookies=None):
-        # requests session
-        output = Services.get('output')
-        request = Session()
-        prepped=self.prepare_request(url,method,payload,headers,cookies)
+        output = Services.get("output")
+        session = Session()
+        prepped = self.prepare_request(url, method, payload, headers, cookies)
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
-            resp=request.send(
+            return session.send(
                 prepped,
                 timeout=self.timeout,
-                proxies={
-                    'http': self.proxy,
-                    'https': self.proxy,
-                    'ftp': self.proxy,
-                },
+                proxies={"http": self.proxy, "https": self.proxy, "ftp": self.proxy},
                 allow_redirects=self.redirect,
-                verify=False)
-            return resp
+                verify=False,
+            )
         except Timeout:
             # requests raises requests.exceptions.Timeout (a RequestException),
             # not the builtin TimeoutError, so it must be caught explicitly.
-            output.error("Timeout error on the URL: %s" % url)
+            output.error(f"Timeout error on the URL: {url}")
         except ConnectionError as err:
-            output.error("Connection error on the URL: %s\n {0}\n".format(err) % url)
+            output.error(f"Connection error on the URL: {url}\n {err}\n")
         except RequestException as err:
-            output.error("Error while trying to contact the website: \n {0}\n".format(err))
+            output.error(f"Error while trying to contact the website:\n {err}\n")
         # On any handled error return None so callers can degrade gracefully
         # (a single failing request must never abort the whole scan).
         return None
 
     def prepare_request(self, url, method, payload, headers, cookies):
-        if payload is None:
-            payload = {}
-        if headers is None:
-            headers = {}
+        payload = payload or {}
+        headers = headers or {}
         if cookies is not None:
-            cookies = {cookies: ''}
-        if self.random_agent:
-            headers['User-Agent'] = ragent.RandomUserAgent()
-        else:
-            headers['User-Agent'] = self.agent
-        # get method
-        if method.upper() == "GET":
-            req = Request(
-                method=method.upper(),
-                url=url,
-                headers=headers,
-                cookies=cookies,
-            ).prepare()
-        # post method
-        elif method.upper() == "POST":
-            req = Request(
-                method=method.upper(),
-                url=url,
-                data=payload,
-                headers=headers,
-                cookies=cookies,
-            ).prepare()
-        # other methods
-        else:
-            req = Request(
-                method=method.upper(),
-                url=url,
-                data=payload,
-                headers=headers,
-                cookies=cookies,
-            ).prepare()
-        # return all "req" attrs
-        return req
+            cookies = {cookies: ""}
+        headers["User-Agent"] = (
+            ragent.RandomUserAgent() if self.random_agent else self.agent
+        )
+
+        method = method.upper()
+        # GET carries no body; every other method forwards the payload as data.
+        match method:
+            case "GET":
+                request = Request(
+                    method=method, url=url, headers=headers, cookies=cookies
+                )
+            case _:
+                request = Request(
+                    method=method,
+                    url=url,
+                    data=payload,
+                    headers=headers,
+                    cookies=cookies,
+                )
+        return request.prepare()
