@@ -7,7 +7,6 @@
 # @license: See the file 'LICENSE.txt'
 
 import argparse
-import logging
 import sys
 import signal
 from lib import __version__
@@ -17,6 +16,7 @@ from lib.request.request import SingleRequest
 from lib.utils import banner, manager, output, validator
 from lib.utils.container import Services
 from lib.utils.datastore import Datastore
+from lib.utils.logs import setup_logging
 from lib.utils.output import Output
 
 
@@ -107,34 +107,7 @@ class Sitadel(object):
             settings.risk = Risk(args.risk)
 
         # Setting up the logger
-        logger = logging.getLogger("sitadelLog")
-        logging.basicConfig(
-            filename="sitadel.log",
-            filemode="w",
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%d-%b-%y %H:%M:%S",
-            level=(logging.CRITICAL - (args.verbosity * 10)),
-        )
-
-        # Create handlers
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.WARNING)
-
-        file_handler = logging.FileHandler("sitadel.log")
-        file_handler.setLevel(level=(logging.CRITICAL - (args.verbosity * 10)))
-
-        # Create formatters and add it to handlers
-        console_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-        console_handler.setFormatter(console_format)
-
-        file_format = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        file_handler.setFormatter(file_format)
-
-        # Add handlers to the logger
-        logger.addHandler(console_handler)
-        logger.addHandler(file_handler)
+        logger = setup_logging(args.verbosity)
 
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
