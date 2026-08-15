@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import urllib3
 from requests import ConnectionError, Request, RequestException, Session, Timeout
+from requests.adapters import HTTPAdapter
 
 from lib.utils.container import Services
 from . import ragent as ragent
+
+# Sized to the attack phase's bounded thread pools so connections are reused.
+_POOL_SIZE = 20
 
 
 class SingleRequest:
@@ -16,6 +20,7 @@ class SingleRequest:
         redirect: bool = True,
         timeout: int | None = None,
         random_agent: bool = False,
+        verify: bool = False,
     ):
         self.url = url
         self.agent = agent
@@ -23,20 +28,28 @@ class SingleRequest:
         self.redirect = redirect
         self.timeout = timeout
         self.random_agent = random_agent
+        self.verify = verify
         self.ruagent = ragent.RandomUserAgent()
+
+        # Reuse one pooled session (keep-alive) across every request instead of
+        # opening a fresh TCP/TLS connection per call.
+        self.session = Session()
+        adapter = HTTPAdapter(pool_connections=_POOL_SIZE, pool_maxsize=_POOL_SIZE)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        if not self.verify:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def send(self, url, method="GET", payload=None, headers=None, cookies=None):
         output = Services.get("output")
-        session = Session()
         prepped = self.prepare_request(url, method, payload, headers, cookies)
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
-            return session.send(
+            return self.session.send(
                 prepped,
                 timeout=self.timeout,
                 proxies={"http": self.proxy, "https": self.proxy, "ftp": self.proxy},
                 allow_redirects=self.redirect,
-                verify=False,
+                verify=self.verify,
             )
         except Timeout:
             # requests raises requests.exceptions.Timeout (a RequestException),

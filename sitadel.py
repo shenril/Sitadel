@@ -80,6 +80,12 @@ class Sitadel(object):
             help="Use a random User-Agent for each scan request",
         )
         parser.add_argument(
+            "--verify",
+            dest="verify",
+            action="store_true",
+            help="Verify the server's TLS certificate (off by default)",
+        )
+        parser.add_argument(
             "-f", "--fingerprint", nargs="+", help="Fingerprint modules to activate"
         )
         parser.add_argument(
@@ -122,6 +128,7 @@ class Sitadel(object):
                 redirect=args.redirect,
                 timeout=args.timeout,
                 random_agent=args.random_agent,
+                verify=args.verify,
             ),
         )
 
