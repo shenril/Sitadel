@@ -30,6 +30,7 @@ dependencies = [
     "colorama>=0.4",
     "aiohttp>=3.9",
     "selectolax>=0.3",
+    "mmh3>=4.0",
 ]
 
 [project.optional-dependencies]
@@ -52,4 +53,4 @@ version = { attr = "lib.__version__" }
 include = ["lib*"]
 
 [tool.setuptools.package-data]
-lib = ["data/*.txt"]
+lib = ["data/*.txt", "data/*.json"]

@@ -15,6 +15,7 @@ from lib.config.settings import Risk
 from lib.request.request import SingleRequest
 from lib.utils import banner, manager, output, validator
 from lib.utils.container import Services
+from lib.model import TargetProfile
 from lib.report import Findings, write_report
 from lib.request.auth import Authenticator
 from lib.utils.datastore import Datastore
@@ -161,6 +162,7 @@ class Sitadel(object):
         Services.register("logger", logger)
         Services.register("output", Output())
         Services.register("findings", Findings())
+        Services.register("profile", TargetProfile())
         Services.register(
             "request_factory",
             SingleRequest(
@@ -208,6 +210,11 @@ class Sitadel(object):
                 self.url,
                 args.cookie,
             )
+
+            # Show the assembled target profile that will drive attack selection
+            profile = Services.get("profile")
+            if profile.technologies:
+                Services.get("output").info(f"Target profile: {profile.summary()}")
 
             # Run the crawler to discover urls
             discovered_urls = self.ma.crawler(self.url, args.user_agent)
