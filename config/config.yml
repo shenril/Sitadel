@@ -43,3 +43,4 @@ attack_plugins:
   - injection # Parrallelized
   - vulns
   - other
+  - authz # Access control: IDOR / broken access control (risk 2 only)
