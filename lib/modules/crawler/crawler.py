@@ -4,6 +4,7 @@ import asyncio
 from urllib.parse import parse_qsl, urljoin, urlsplit
 
 import aiohttp
+from requests.utils import dict_from_cookiejar
 from selectolax.parser import HTMLParser
 
 from lib.config import settings
@@ -23,6 +24,28 @@ def _config() -> dict:
     cfg = dict(_DEFAULTS)
     cfg.update(getattr(settings, "crawler", None) or {})
     return cfg
+
+
+def _auth_context():
+    """Auth headers + cookies to crawl as the authenticated user.
+
+    Read from the shared ``request_factory`` (populated by the login flow in
+    ``Authenticator``) so the crawler discovers pages behind login. Returns two
+    empty dicts when no request factory / authentication is configured, so
+    unauthenticated scans and direct ``crawl()`` calls are unaffected.
+    """
+    headers, cookies = {}, {}
+    try:
+        request = Services.get("request_factory")
+    except Exception:
+        return headers, cookies
+    authenticator = getattr(request, "authenticator", None)
+    if authenticator is not None:
+        headers.update(authenticator.headers)
+    session = getattr(request, "session", None)
+    if session is not None:
+        cookies.update(dict_from_cookiejar(session.cookies))
+    return headers, cookies
 
 
 def url_signature(url: str, ignore_params=()) -> tuple:
@@ -94,9 +117,14 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
     connector = aiohttp.TCPConnector(
         limit=concurrency, limit_per_host=concurrency, ssl=False
     )
-    headers = {"User-Agent": user_agent}
+    # Crawl as the authenticated user (same-domain restriction below keeps the
+    # cookies scoped to the target host).
+    extra_headers, cookies = _auth_context()
+    headers = {"User-Agent": user_agent, **extra_headers}
 
-    async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
+    async with aiohttp.ClientSession(
+        connector=connector, headers=headers, cookies=cookies
+    ) as session:
 
         async def worker():
             while True:
