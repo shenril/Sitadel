@@ -16,6 +16,7 @@ from lib.request.request import SingleRequest
 from lib.utils import banner, manager, output, validator
 from lib.utils.container import Services
 from lib.report import Findings, write_report
+from lib.request.auth import Authenticator
 from lib.utils.datastore import Datastore
 from lib.utils.logs import setup_logging
 from lib.utils.output import Output
@@ -86,6 +87,35 @@ class Sitadel(object):
             action="store_true",
             help="Verify the server's TLS certificate (off by default)",
         )
+        # Authentication options
+        parser.add_argument(
+            "--auth-basic", help="HTTP Basic credentials as user:password"
+        )
+        parser.add_argument(
+            "--auth-bearer", help="Bearer token to send in the Authorization header"
+        )
+        parser.add_argument(
+            "-H",
+            "--header",
+            dest="headers",
+            action="append",
+            help="Extra header 'Name: Value' (repeatable), e.g. an API key",
+        )
+        parser.add_argument(
+            "--login-url", help="URL to POST credentials to for form login"
+        )
+        parser.add_argument(
+            "--login-data",
+            help="Form login body, e.g. 'username=admin&password=secret'",
+        )
+        parser.add_argument(
+            "--csrf-field",
+            help="Name of a hidden CSRF field to read from the login page",
+        )
+        parser.add_argument(
+            "--logged-in-check",
+            help="String expected on authenticated pages (drives re-auth)",
+        )
         parser.add_argument(
             "-f", "--fingerprint", nargs="+", help="Fingerprint modules to activate"
         )
@@ -143,6 +173,31 @@ class Sitadel(object):
                 verify=args.verify,
             ),
         )
+
+        # Configure authentication (if any) and log in before scanning so all
+        # phases run as an authenticated user.
+        authenticator = Authenticator.from_options(
+            basic=args.auth_basic,
+            bearer=args.auth_bearer,
+            headers=args.headers,
+            login_url=args.login_url,
+            login_data=args.login_data,
+            csrf_field=args.csrf_field,
+            logged_in_check=args.logged_in_check,
+        )
+        if authenticator is not None:
+            request_factory = Services.get("request_factory")
+            request_factory.set_authenticator(authenticator)
+            if authenticator.has_login:
+                request_factory.login()
+                probe = request_factory.send(url=self.url, method="GET")
+                if authenticator.looks_logged_out(probe):
+                    Services.get("output").error(
+                        "Login may have failed: the 'logged-in' check did not "
+                        "match after authenticating."
+                    )
+                else:
+                    Services.get("output").info("Authenticated to the target.")
 
         # Display target and scan starting time
         self.bn.preamble(self.url)
