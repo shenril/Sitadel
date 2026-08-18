@@ -56,6 +56,13 @@ class SingleRequest:
              _retry=True):
         output = Services.get("output")
         prepped = self.prepare_request(url, method, payload, headers, cookies)
+        # File-only trace of every request the scan makes. Since all attack
+        # modules send their probes through here, this records exactly which
+        # patterns/payloads were tested (visible in sitadel.log at -v).
+        output.trace(
+            "REQUEST %s %s%s"
+            % (method.upper(), url, f" data={payload}" if payload else "")
+        )
         try:
             resp = self.session.send(
                 prepped,

@@ -160,7 +160,7 @@ class Sitadel(object):
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
         Services.register("logger", logger)
-        Services.register("output", Output())
+        Services.register("output", Output(args.verbosity))
         Services.register("findings", Findings())
         Services.register("profile", TargetProfile())
         Services.register(
@@ -218,6 +218,16 @@ class Sitadel(object):
 
             # Run the crawler to discover urls
             discovered_urls = self.ma.crawler(self.url, args.user_agent)
+
+            # Record the crawl surface. The count goes to console + file; the
+            # full list is file-only (-v) so the log lets you review every path
+            # discovered before any attack is launched, without flooding stdout.
+            output_svc = Services.get("output")
+            output_svc.info(
+                f"Crawler discovered {len(discovered_urls)} URL(s)"
+            )
+            for discovered in discovered_urls:
+                output_svc.trace(f"Crawled URL: {discovered}")
 
             # Hotfix on KeyboardInterrupt being redirected to scrapy crawler process
             signal.signal(signal.SIGINT, signal.default_int_handler)
