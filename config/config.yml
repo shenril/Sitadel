@@ -34,6 +34,8 @@ fingerprint_plugins:
   - lang
   - server
   - waf
+  - tech      # signature-based technology detection (feeds the target profile)
+  - favicon   # favicon (mmh3) hash
 
 ## List of attacks plugins activated
 attack_plugins:

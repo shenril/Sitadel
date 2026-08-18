@@ -5,6 +5,8 @@ from .. import AttackPlugin
 
 
 class Php(AttackPlugin):
+    # PHP code injection only makes sense against a PHP application.
+    requires = {"lang": "php"}
     output = Services.get("output")
     request = Services.get("request_factory")
     logger = Services.get("logger")

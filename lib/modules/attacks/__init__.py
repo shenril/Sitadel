@@ -13,6 +13,29 @@ class AttackPlugin(metaclass=IPlugin):
     # Default risk level for attack modules is NOISY since it sends requests
     level = Risk.NOISY
 
+    # Optional profile requirements, e.g. {"lang": "php"}. Empty means the
+    # attack applies to any target.
+    requires: dict = {}
+
+    def applies_to(self, profile):
+        """Whether this attack is relevant given the fingerprint profile.
+
+        Fail-open: an attack is skipped only when the profile *positively*
+        contradicts a requirement (e.g. it requires PHP but a different
+        language was detected). When the relevant signal is unknown, the
+        attack still runs, so gating never hides a real vulnerability just
+        because fingerprinting missed the stack.
+        """
+        if profile is None:
+            return True
+        for key, expected in self.requires.items():
+            detected = profile.get(key)
+            if detected is None:
+                continue
+            if str(expected).lower() not in detected.lower():
+                return False
+        return True
+
     @classmethod
     def enabled(cls):
         """Registered plugins whose risk level is within the configured risk.
@@ -72,10 +95,28 @@ class Attacks:
                     ".{pkg}.{mod}".format(pkg=p, mod=module), __package__
                 )
 
+        # Consult the fingerprint profile (if any) to skip attack classes that
+        # do not apply to the detected stack.
         try:
+            profile = Services.get("profile")
+        except NameError:
+            profile = None
+
+        try:
+            selected = []
+            for plugin in AttackPlugin.enabled():
+                instance = plugin()
+                if instance.applies_to(profile):
+                    selected.append(instance)
+                else:
+                    self.output.info(
+                        "Skipping {name} (not applicable to target)".format(
+                            name=instance.__class__.__name__
+                        )
+                    )
             attacks = [
-                (p(), p().process(self.start_url, self.crawled_urls))
-                for p in AttackPlugin.enabled()
+                (instance, instance.process(self.start_url, self.crawled_urls))
+                for instance in selected
             ]
             for category, result in attacks:
                 if result is not None:

@@ -77,6 +77,13 @@ class Fingerprints:
                 for p in FingerprintPlugin.enabled()
             ]
 
+            # Aggregate detections into the shared TargetProfile (if registered)
+            # so the attack phase can decide which classes are worth launching.
+            try:
+                profile = Services.get("profile")
+            except NameError:
+                profile = None
+
             # Display findings for each category of modules
             for category, result in fingerprints:
                 if result is not None:
@@ -85,6 +92,9 @@ class Fingerprints:
                             category=category, result=result
                         )
                     )
+                    # `category` is the plugin's package name (lang, server, …).
+                    if profile is not None:
+                        profile.add(str(category), result)
 
         except Exception as e:
             self.logger.error(e)
