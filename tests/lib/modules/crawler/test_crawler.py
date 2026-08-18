@@ -120,3 +120,94 @@ def test_crawl_respects_max_pages(local_site):
     results = crawl(local_site, "test-agent")
     if len(results) > 2:
         raise AssertionError(f"max_pages not respected: {len(results)} results")
+
+
+# ---------------------------------------------------------------------------
+# Authenticated crawling (issue #87)
+# ---------------------------------------------------------------------------
+class _AuthedFactory:
+    """Minimal stand-in for a logged-in request_factory."""
+
+    def __init__(self, cookies, headers):
+        import requests
+        self.session = requests.Session()
+        self.session.cookies.update(cookies)
+
+        class _Auth:
+            pass
+
+        self.authenticator = _Auth()
+        self.authenticator.headers = headers
+
+
+def test_auth_context_reads_request_factory():
+    from lib.modules.crawler.crawler import _auth_context
+
+    Services.register(
+        "request_factory",
+        _AuthedFactory({"session": "abc"}, {"Authorization": "Bearer tok"}),
+    )
+    try:
+        headers, cookies = _auth_context()
+        if headers.get("Authorization") != "Bearer tok":
+            raise AssertionError
+        if cookies.get("session") != "abc":
+            raise AssertionError
+    finally:
+        Services.services.pop("request_factory", None)
+
+
+class _AuthHandler(BaseHTTPRequestHandler):
+    def log_message(self, *a):
+        pass
+
+    def _send(self, body):
+        raw = body.encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
+
+    def _authed(self):
+        return "session=valid" in self.headers.get("Cookie", "")
+
+    def do_GET(self):
+        # The link is only revealed to an authenticated session.
+        if urlsplit(self.path).path == "/":
+            if self._authed():
+                self._send('<a href="/secret?id=1">secret</a>')
+            else:
+                self._send("please login")
+        else:
+            self._send("leaf")
+
+
+@pytest.fixture
+def auth_site():
+    server = _Server(("127.0.0.1", 0), _AuthHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    host, port = server.server_address
+    Services.register("output", Output())
+    try:
+        yield f"http://{host}:{port}/"
+    finally:
+        server.shutdown()
+        server.server_close()
+        Services.services.pop("request_factory", None)
+
+
+def test_authenticated_crawler_discovers_gated_links(auth_site):
+    Services.register(
+        "request_factory", _AuthedFactory({"session": "valid"}, {})
+    )
+    results = crawl(auth_site, "test-agent")
+    if not any("/secret?id=1" in u for u in results):
+        raise AssertionError("authenticated crawler should discover gated link")
+
+
+def test_unauthenticated_crawler_does_not_see_gated_links(auth_site):
+    Services.services.pop("request_factory", None)
+    results = crawl(auth_site, "test-agent")
+    if any("/secret" in u for u in results):
+        raise AssertionError("gated link must not be discovered without auth")
