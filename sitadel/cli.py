@@ -16,6 +16,7 @@ from sitadel.request.request import SingleRequest
 from sitadel.utils import banner, manager, output, validator
 from sitadel.utils.container import Services
 from sitadel.model import TargetProfile
+from sitadel.modules.discovery import discover as discover_api
 from sitadel.report import Findings, write_report
 from sitadel.request.auth import Authenticator
 from sitadel.utils.datastore import Datastore
@@ -117,6 +118,13 @@ class Sitadel(object):
             "--logged-in-check",
             help="String expected on authenticated pages (drives re-auth)",
         )
+        parser.add_argument(
+            "--no-discovery",
+            dest="discovery",
+            action="store_false",
+            help="Disable API-first discovery (OpenAPI/Swagger + REST probing)",
+        )
+        parser.set_defaults(discovery=True)
         parser.add_argument(
             "-f", "--fingerprint", nargs="+", help="Fingerprint modules to activate"
         )
@@ -228,6 +236,24 @@ class Sitadel(object):
             )
             for discovered in discovered_urls:
                 output_svc.trace(f"Crawled URL: {discovered}")
+
+            # API-first discovery: enumerate API endpoints from an OpenAPI/
+            # Swagger spec (or detect a REST surface) and register them as
+            # injectable targets so body injection reaches JSON/XML endpoints.
+            # HTML-only targets expose no spec, so this is a clean no-op there.
+            if args.discovery:
+                api_targets = discover_api(
+                    self.url,
+                    Services.get("request_factory"),
+                    profile=Services.get("profile"),
+                    output=output_svc,
+                )
+                if api_targets:
+                    Services.register("api_targets", api_targets)
+                    output_svc.info(
+                        f"API discovery added {len(api_targets)} endpoint "
+                        f"target(s) for injection"
+                    )
 
             # Hotfix on KeyboardInterrupt being redirected to scrapy crawler process
             signal.signal(signal.SIGINT, signal.default_int_handler)

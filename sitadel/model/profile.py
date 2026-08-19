@@ -17,10 +17,17 @@ class TargetProfile:
     technologies: dict[str, set[str]] = field(
         default_factory=lambda: defaultdict(set)
     )
+    # Detected API style, e.g. "rest" or "graphql". Set by the API-discovery
+    # step (or fingerprinting) and consulted to gate API-only attacks.
+    api_type: str | None = None
 
     def add(self, category: str, name) -> None:
         if category and name:
             self.technologies[str(category).lower()].add(str(name))
+
+    def is_api(self) -> bool:
+        """Whether the target looks like an API worth body-injection testing."""
+        return self.api_type in ("rest", "graphql")
 
     def get(self, category: str) -> str | None:
         """Return the detections for a category as a string, or None."""
