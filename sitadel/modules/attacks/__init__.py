@@ -2,6 +2,7 @@ import importlib
 import os
 import pkgutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import parse_qsl, urlsplit
 
 from sitadel.config import settings
 from sitadel.config.settings import Risk
@@ -100,11 +101,21 @@ class AttackPlugin(metaclass=IPlugin):
                     return
                 label = detector(resp, payload)
                 if label:
+                    # Record which field carried the payload so the report (and
+                    # its de-duplication) can tell apart issues on one endpoint:
+                    # the body fields for a JSON/XML/form target, else the query
+                    # parameters taint_url rewrote.
+                    if target.body_format:
+                        parameter = ",".join(target.params) or None
+                    else:
+                        parameter = self.tainted_params(target.url)
                     output.finding(
                         "That site may be vulnerable to %s at %s\nInjection: %s"
                         % (label, target.describe(), payload),
                         url=kwargs["url"],
                         plugin=type(self).__name__,
+                        parameter=parameter,
+                        evidence="payload=%s | matched=%s" % (payload, label),
                     )
             except Exception as err:
                 logger.error(err)
@@ -122,6 +133,17 @@ class AttackPlugin(metaclass=IPlugin):
             except KeyboardInterrupt:
                 executor.shutdown(False)
                 raise
+
+    @staticmethod
+    def tainted_params(url):
+        """Comma-joined names of the query parameters ``taint_url`` injects.
+
+        Recorded on findings as the ``parameter`` field so the report (and its
+        de-duplication) can distinguish issues on the same endpoint. Returns
+        ``None`` when the URL carries no query parameters.
+        """
+        params = dict(parse_qsl(urlsplit(url).query))
+        return ", ".join(params) if params else None
 
     def process(self, start_url, crawled_urls):
         raise NotImplementedError(str(self) + ": Process method not found")

@@ -35,6 +35,53 @@ def test_finding_prints_and_records_when_collector_registered(capsys):
         Services.services.pop("findings", None)
 
 
+def test_finding_is_enriched_from_knowledge_base_by_plugin(capsys):
+    collector = Findings()
+    Services.register("findings", collector)
+    try:
+        # Legacy-style single-string call, but with the plugin name: the KB
+        # fills severity/cwe/owasp/wstg/remediation for free.
+        Output().finding("SQL injection at /x", plugin="Sql")
+        item = collector.all()[0]
+        if item.severity != Severity.HIGH:
+            raise AssertionError("severity must come from the KB")
+        if item.cwe != "CWE-89" or item.owasp != "A03:2021-Injection":
+            raise AssertionError("standards mapping must be filled from the KB")
+        if not item.remediation:
+            raise AssertionError("remediation must be filled from the KB")
+    finally:
+        Services.services.pop("findings", None)
+
+
+def test_explicit_finding_args_override_knowledge_base(capsys):
+    collector = Findings()
+    Services.register("findings", collector)
+    try:
+        Output().finding("SQLi", plugin="Sql", severity=Severity.CRITICAL,
+                         cwe="CWE-000", evidence="marker", parameter="id",
+                         confidence="firm")
+        item = collector.all()[0]
+        if item.severity != Severity.CRITICAL or item.cwe != "CWE-000":
+            raise AssertionError("explicit args must win over the KB")
+        if item.evidence != "marker" or item.parameter != "id":
+            raise AssertionError("evidence/parameter must be recorded")
+    finally:
+        Services.services.pop("findings", None)
+
+
+def test_legacy_finding_without_plugin_still_records(capsys):
+    collector = Findings()
+    Services.register("findings", collector)
+    try:
+        # Unknown type: neutral defaults, no crash, still recorded.
+        Output().finding("something happened")
+        item = collector.all()[0]
+        if item.title != "something happened" or item.severity != Severity.INFO:
+            raise AssertionError
+    finally:
+        Services.services.pop("findings", None)
+
+
 def _read(path):
     with open(path, encoding="utf-8") as fh:
         return fh.read()

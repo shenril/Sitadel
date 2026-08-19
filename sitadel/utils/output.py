@@ -5,6 +5,7 @@ import logging
 from colorama import Fore, Style
 
 from sitadel.report import Finding, Severity
+from sitadel.report.knowledge import lookup as _lookup_knowledge
 from sitadel.utils.container import Services
 
 
@@ -24,8 +25,21 @@ class Output:
         # the log file is always a superset of stdout.
         self.logger = logging.getLogger("sitadelLog")
 
-    def finding(self, value: str, severity: Severity = Severity.INFO,
-                url: str | None = None, plugin: str | None = None) -> None:
+    def finding(self, value: str, severity: Severity | None = None,
+                url: str | None = None, plugin: str | None = None,
+                parameter: str | None = None, evidence: str | None = None,
+                confidence: str | None = None, cwe: str | None = None,
+                owasp: str | None = None, wstg: str | None = None,
+                remediation: str | None = None,
+                finding_type: str | None = None) -> None:
+        r"""Report a finding: print it, log it, and record it for the report.
+
+        Only ``value`` is required, so legacy ``finding("text")`` calls keep
+        working. Any triage field a plugin omits is filled from the
+        remediation/standards knowledge base (keyed by ``finding_type`` or the
+        ``plugin`` name), so even single-string findings gain a sane severity,
+        confidence, and CWE/OWASP/WSTG mapping. Explicit arguments always win.
+        """
         print(f"{self.g}[+]{self.e} {self.w}{value}{self.e}", flush=True)
         self.logger.info("FINDING: %s", value)
         # Also record the finding for report generation, when a collector is
@@ -35,8 +49,25 @@ class Output:
         except NameError:
             collector = None
         if collector is not None:
+            kb = _lookup_knowledge(finding_type or plugin)
+
+            def pick(explicit, key):
+                return explicit if explicit is not None else kb.get(key)
+
             collector.add(
-                Finding(title=value, severity=severity, url=url, plugin=plugin)
+                Finding(
+                    title=value,
+                    severity=pick(severity, "severity") or Severity.INFO,
+                    url=url,
+                    parameter=parameter,
+                    evidence=evidence,
+                    confidence=pick(confidence, "confidence"),
+                    plugin=plugin,
+                    cwe=pick(cwe, "cwe"),
+                    owasp=pick(owasp, "owasp"),
+                    wstg=pick(wstg, "wstg"),
+                    remediation=pick(remediation, "remediation"),
+                )
             )
 
     def error(self, value: str) -> None:
