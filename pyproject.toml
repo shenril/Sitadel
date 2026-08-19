@@ -32,6 +32,8 @@ dependencies = [
     "selectolax>=0.3",
     "mmh3>=4.0",
     "jsonschema>=4.0",
+    "PyJWT>=2.8",
+    "cryptography>=42",
 ]
 
 [project.optional-dependencies]
