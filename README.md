@@ -47,7 +47,7 @@ pip3 install .
 # run via the installed console command...
 sitadel --help
 # ...or directly from the checkout
-python sitadel.py --help
+python -m sitadel --help
 ```
 
 ## Features
@@ -101,10 +101,10 @@ python sitadel.py --help
 ## Usage
 
 ```bash
-sitadel.py [-h] [-r {0,1,2}] [-ua USER_AGENT] [--random-agent] [--redirect]
-           [--no-redirect] [-t TIMEOUT] [-c COOKIE] [-p PROXY]
-           [-f FINGERPRINT [MODULE ...]] [-a ATTACK [MODULE ...]]
-           [--config CONFIG] [-v] [--version]
+sitadel [-h] [-r {0,1,2}] [-ua USER_AGENT] [--random-agent] [--redirect]
+        [--no-redirect] [-t TIMEOUT] [-c COOKIE] [-p PROXY]
+        [-f FINGERPRINT [MODULE ...]] [-a ATTACK [MODULE ...]]
+        [--config CONFIG] [-v] [--version]
            TARGET_URL
 ```
 
