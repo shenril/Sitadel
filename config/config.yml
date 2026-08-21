@@ -11,7 +11,7 @@ risk: 1
 dns_resolver: 8.8.8.8
 
 ## Root location for the datafile used by the plugins
-datastore: lib/data
+datastore: sitadel/data
 
 ## Crawler tuning
 ## URLs are de-duplicated by their parameter signature (scheme, host, path and the

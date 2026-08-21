@@ -40,17 +40,16 @@ tests = ["pytest", "flake8"]
 Homepage = "https://github.com/shenril/Sitadel"
 
 [project.scripts]
-sitadel = "sitadel:main"
+sitadel = "sitadel.cli:main"
 
 [tool.setuptools]
-py-modules = ["sitadel"]
 include-package-data = true
 
 [tool.setuptools.dynamic]
-version = { attr = "lib.__version__" }
+version = { attr = "sitadel.__version__" }
 
 [tool.setuptools.packages.find]
-include = ["lib*"]
+include = ["sitadel*"]
 
 [tool.setuptools.package-data]
-lib = ["data/*.txt", "data/*.json"]
+sitadel = ["data/*.txt", "data/*.json"]

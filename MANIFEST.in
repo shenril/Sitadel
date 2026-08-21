@@ -1,2 +1,3 @@
 include config/*.yml
-include lib/data/*.txt
+include sitadel/data/*.txt
+include sitadel/data/*.json
