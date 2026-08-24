@@ -18,6 +18,7 @@ import time
 from urllib.parse import urlsplit
 
 from rich.text import Text
+from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Footer, Static, Tree
@@ -28,6 +29,9 @@ from sitadel.utils.events import (
     PageDiscovered,
     PageTesting,
     Phase,
+    ProgressSnap,
+    ProgressStep,
+    ProgressTotal,
     ScanFinished,
 )
 
@@ -70,6 +74,9 @@ class SitadelApp(App):
         self._testing_url: str | None = None
         self._done = False
         self._filter: str | None = None
+        self._endpoint_filter: str | None = None
+        self._prog_total = 0
+        self._prog_done = 0
         self._counts = {s: 0 for s in _SEV_ORDER}
         # Crawl-tree: path (no query) → node, for building + marking tests.
         self._url_nodes: dict[str, object] = {}
@@ -120,12 +127,24 @@ class SitadelApp(App):
             elif isinstance(event, Phase):
                 self._phase = event.name
                 self._render_progress()
+            elif isinstance(event, ProgressTotal):
+                self._prog_total = event.total
+                self._render_progress()
+            elif isinstance(event, ProgressStep):
+                self._prog_done = min(self._prog_done + event.n, self._prog_total)
+                self._render_progress()
+            elif isinstance(event, ProgressSnap):
+                self._prog_done = min(
+                    max(self._prog_done, event.done), self._prog_total
+                )
+                self._render_progress()
             elif isinstance(event, Log):
                 self._render_status(event.text)
             elif isinstance(event, ScanFinished):
                 self._end = time.monotonic()
                 self._done = True
                 self._phase = "done ✓"
+                self._prog_done = self._prog_total
                 self._testing_url = None
                 self._clear_testing_marker()
                 self._render_progress()
@@ -143,15 +162,32 @@ class SitadelApp(App):
             (clock, "bold"),
             ("   phase: ", "dim"),
             (self._phase, "bold magenta"),
-            (f"   crawled {self._crawled}", "green"),
+            (f"   crawled {self._crawled}   ", "green"),
         )
+        line1.append_text(self._progress_bar())
         counts = Text("  ")
         for sev in _SEV_ORDER:
             counts.append(f"{self._counts[sev]} {sev}  ", style=_SEV[sev])
-        counts.append(f"│ filter: {self._filter or 'all'}", style="bold")
+        counts.append(f"│ severity: {self._filter or 'all'}", style="bold")
+        if self._endpoint_filter:
+            counts.append(f"  │ endpoint: {self._endpoint_filter}", style="bold cyan")
         testing = self._testing_url or "—"
         counts.append(f"  │ testing: {testing}", style="dim")
         self.query_one("#progress", Static).update(Text.assemble(line1, "\n", counts))
+
+    def _progress_bar(self, width: int = 20) -> Text:
+        """A ``▉▉▉░░ 63%`` attack-progress bar (attacks × URLs completed)."""
+        if self._prog_total <= 0:
+            pct = 100 if self._done else 0
+        else:
+            pct = int(100 * self._prog_done / self._prog_total)
+        pct = max(0, min(100, pct))
+        filled = round(width * pct / 100)
+        bar = Text()
+        bar.append("▉" * filled, style="green")
+        bar.append("░" * (width - filled), style="grey37")
+        bar.append(f" {pct:3d}%", style="bold")
+        return bar
 
     def _render_status(self, text: str) -> None:
         self.query_one("#status", Static).update(Text(text, style="dim"))
@@ -183,24 +219,39 @@ class SitadelApp(App):
         if endpoint:
             group["urls"][(endpoint, ev.parameter or "")] = True
 
-        if self._passes_filter(group):
+        if self._group_visible(group):
             self._sync_group_node(label, group)
         self._render_progress()
 
-    def _passes_filter(self, group: dict) -> bool:
-        return self._filter is None or group["severity"] == self._filter
+    def _group_visible(self, group: dict) -> bool:
+        """A group shows if its severity passes and it has a matching endpoint."""
+        if self._filter is not None and group["severity"] != self._filter:
+            return False
+        if self._endpoint_filter is not None:
+            return any(self._ep_match(ep) for (ep, _p) in group["urls"])
+        return True
+
+    def _ep_match(self, endpoint: str) -> bool:
+        """Whether an endpoint falls under the selected crawl-tree node."""
+        sel = self._endpoint_filter
+        if not sel:
+            return True
+        return endpoint == sel or endpoint.startswith(sel.rstrip("/") + "/")
 
     def _sync_group_node(self, label: str, group: dict) -> None:
         """Create or refresh a group node and its URL children incrementally."""
         tree = self.query_one("#findings", Tree)
         if group["node"] is None:
-            group["node"] = tree.root.add(_group_text(label, group), expand=False)
+            group["node"] = tree.root.add(_group_text(label, group), expand=True)
         else:
             group["node"].set_label(_group_text(label, group))
         node = group["node"]
-        # Add any (endpoint, param) children not yet shown.
+        # Add any (endpoint, param) children not yet shown, honouring the
+        # endpoint filter set by clicking a crawl-tree node.
         shown = {getattr(c, "_sitadel_url", None) for c in node.children}
         for (endpoint, param) in group["urls"]:
+            if not self._ep_match(endpoint):
+                continue
             if (endpoint, param) in shown:
                 continue
             child = node.add_leaf(_url_text(endpoint, param))
@@ -213,7 +264,7 @@ class SitadelApp(App):
         for group in self._groups.values():
             group["node"] = None
         for label, group in self._groups.items():
-            if self._passes_filter(group):
+            if self._group_visible(group):
                 self._sync_group_node(label, group)
 
     # ------------------------------------------------------- crawl tree #
@@ -244,6 +295,7 @@ class SitadelApp(App):
             child = self._url_nodes.get(cumulative)
             if child is None:
                 child = parent.add(seg, expand=True)
+                child._sitadel_path = cumulative  # type: ignore[attr-defined]
                 self._url_nodes[cumulative] = child
             parent = child
         label = segments[-1] if segments else "/"
@@ -251,6 +303,7 @@ class SitadelApp(App):
             label = f"{label}?{parts.query}"
         leaf = parent.add_leaf(label)
         leaf._sitadel_base = label  # type: ignore[attr-defined]
+        leaf._sitadel_path = key  # type: ignore[attr-defined]
         leaf.set_label(Text(label))
         self._url_nodes[key] = leaf
 
@@ -267,6 +320,25 @@ class SitadelApp(App):
         if self._testing_node is not None:
             self._set_node_label(self._testing_node, testing=False)
             self._testing_node = None
+
+    # --------------------------------------------------------- events #
+    @on(Tree.NodeSelected, "#tree")
+    def _crawl_node_selected(self, event) -> None:
+        """Clicking a crawl-tree node filters findings to that endpoint/subtree."""
+        tree = self.query_one("#tree", Tree)
+        if event.node is tree.root:
+            self._endpoint_filter = None
+        else:
+            self._endpoint_filter = getattr(event.node, "_sitadel_path", None)
+        self._rebuild_findings()
+        self._render_progress()
+        if self._endpoint_filter:
+            self._render_status(
+                f"Findings filtered to {self._endpoint_filter} — "
+                "select the tree root to clear."
+            )
+        else:
+            self._render_status("Showing all findings.")
 
     # --------------------------------------------------------- actions #
     def action_cycle_filter(self) -> None:

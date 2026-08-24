@@ -7,7 +7,12 @@ from urllib.parse import parse_qsl, urlsplit
 from sitadel.config import settings
 from sitadel.config.settings import Risk
 from sitadel.utils.container import Services
-from sitadel.utils.events import PageTesting
+from sitadel.utils.events import (
+    PageTesting,
+    ProgressSnap,
+    ProgressStep,
+    ProgressTotal,
+)
 from .. import IPlugin
 from .targets import Target, taint_body, taint_target, taint_url
 
@@ -111,6 +116,8 @@ class AttackPlugin(metaclass=IPlugin):
                 if target.url not in announced:
                     announced.add(target.url)
                     _publish(PageTesting(target.url))
+                    # One progress unit per (module, target) as it is reached.
+                    _publish(ProgressStep(1))
                 output.debug("Testing: %s" % target.describe())
                 resp = request.send(**kwargs)
                 if resp is None:
@@ -207,10 +214,18 @@ class Attacks:
                             name=instance.__class__.__name__
                         )
                     )
-            attacks = [
-                (instance, instance.process(self.start_url, self.crawled_urls))
-                for instance in selected
-            ]
+            # Progress denominator: one unit per (attack module × target), so a
+            # scan of N modules over M targets is N*M units. Injection modules
+            # advance it per target (ProgressStep above); every module also
+            # snaps to its full share when it finishes, so modules that do not
+            # iterate targets still move the bar.
+            unit = max(len(AttackPlugin.build_targets(self.crawled_urls)), 1)
+            _publish(ProgressTotal(len(selected) * unit))
+            attacks = []
+            for i, instance in enumerate(selected):
+                result = instance.process(self.start_url, self.crawled_urls)
+                attacks.append((instance, result))
+                _publish(ProgressSnap((i + 1) * unit))
             for category, result in attacks:
                 if result is not None:
                     self.output.finding(

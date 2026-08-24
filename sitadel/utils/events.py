@@ -68,6 +68,27 @@ class FindingAdded:
 
 
 @dataclass
+class ProgressTotal:
+    """Total attack work units for this scan: (#attack modules × #targets)."""
+
+    total: int
+
+
+@dataclass
+class ProgressStep:
+    """``n`` attack work units just completed (fine-grained, per target)."""
+
+    n: int = 1
+
+
+@dataclass
+class ProgressSnap:
+    """Absolute floor for completed units (per-module catch-up)."""
+
+    done: int
+
+
+@dataclass
 class ScanFinished:
     """The scan engine finished (report already written)."""
 
