@@ -5,15 +5,19 @@ Kept in its own package so the ``textual`` dependency is only imported when the
 """
 from __future__ import annotations
 
+import threading
+
 from sitadel.utils.events import EventBus
 
 
-def run_tui(scan_fn, bus: EventBus, target: str) -> None:
+def run_tui(scan_fn, bus: EventBus, target: str,
+            cancel: threading.Event | None = None) -> None:
     """Launch the dashboard, running ``scan_fn`` in a background worker thread.
 
     ``scan_fn`` is the full scan engine (fingerprint → crawl → attack → report);
-    it publishes events to ``bus`` as it runs. This blocks until the user quits.
+    it publishes events to ``bus`` as it runs. ``cancel`` is set when the user
+    quits so the scan can unwind cooperatively. This blocks until the user quits.
     """
     from sitadel.tui.app import SitadelApp
 
-    SitadelApp(scan_fn=scan_fn, bus=bus, target=target).run()
+    SitadelApp(scan_fn=scan_fn, bus=bus, target=target, cancel=cancel).run()

@@ -20,6 +20,14 @@ def _publish(event) -> None:
         return
     bus.publish(event)
 
+
+def _cancelled() -> bool:
+    """Whether the user asked to stop the scan (TUI quit); else False."""
+    try:
+        return Services.get("cancel").is_set()
+    except NameError:
+        return False
+
 # Default crawl bounds; overridable through the optional `crawler:` config block.
 _DEFAULTS = {
     "max_depth": 3,
@@ -141,7 +149,8 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
             while True:
                 url, depth = await queue.get()
                 try:
-                    if len(results) > max_pages:
+                    # Fast-drain the frontier on cancel so queue.join() returns.
+                    if _cancelled() or len(results) > max_pages:
                         continue
                     html = await _fetch(session, url, timeout)
                     if html is None or depth >= max_depth:

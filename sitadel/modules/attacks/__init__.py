@@ -25,6 +25,14 @@ def _publish(event) -> None:
         return
     bus.publish(event)
 
+
+def _cancelled() -> bool:
+    """Whether the user asked to stop the scan (TUI quit); else False."""
+    try:
+        return Services.get("cancel").is_set()
+    except NameError:
+        return False
+
 __all__ = ["AttackPlugin", "Attacks", "Target", "taint_body", "taint_target"]
 
 
@@ -110,6 +118,8 @@ class AttackPlugin(metaclass=IPlugin):
 
         def probe(payload, target):
             try:
+                if _cancelled():
+                    return
                 kwargs = taint_target(target, payload)
                 if kwargs is None:
                     return
@@ -152,6 +162,10 @@ class AttackPlugin(metaclass=IPlugin):
             ]
             try:
                 for future in as_completed(futures):
+                    if _cancelled():
+                        # Drop queued probes; in-flight ones finish on their own.
+                        executor.shutdown(cancel_futures=True)
+                        break
                     future.result()
             except KeyboardInterrupt:
                 executor.shutdown(False)
@@ -223,6 +237,8 @@ class Attacks:
             _publish(ProgressTotal(len(selected) * unit))
             attacks = []
             for i, instance in enumerate(selected):
+                if _cancelled():
+                    break
                 result = instance.process(self.start_url, self.crawled_urls)
                 attacks.append((instance, result))
                 _publish(ProgressSnap((i + 1) * unit))

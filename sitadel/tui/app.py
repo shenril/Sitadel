@@ -62,11 +62,12 @@ class SitadelApp(App):
         ("d", "toggle_theme", "Theme"),
     ]
 
-    def __init__(self, scan_fn, bus, target: str) -> None:
+    def __init__(self, scan_fn, bus, target: str, cancel=None) -> None:
         super().__init__()
         self._scan_fn = scan_fn
         self._bus = bus
         self._target = target
+        self._cancel = cancel
         self._start = time.monotonic()
         self._end: float | None = None
         self._phase = "starting"
@@ -341,6 +342,19 @@ class SitadelApp(App):
             self._render_status("Showing all findings.")
 
     # --------------------------------------------------------- actions #
+    def action_quit(self) -> None:  # type: ignore[override]
+        """Signal the scan to stop, then close the UI.
+
+        The scan runs in a worker thread (plus its own thread pool during the
+        attack phase); without cooperative cancellation those threads keep the
+        process alive after the UI closes, hanging the shell. Setting the cancel
+        event lets the engine unwind quickly and still write its partial report.
+        """
+        if self._cancel is not None and not self._done:
+            self._cancel.set()
+            self._render_status("Cancelling scan…")
+        self.exit()
+
     def action_cycle_filter(self) -> None:
         idx = _FILTERS.index(self._filter)
         self._filter = _FILTERS[(idx + 1) % len(_FILTERS)]

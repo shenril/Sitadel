@@ -172,9 +172,11 @@ class Sitadel(object):
             from sitadel.tui import run_tui
 
             bus = EventBus()
+            cancel = threading.Event()
             Services.register("events", bus)
+            Services.register("cancel", cancel)
             target = str(validator.validate_target(args.url))
-            run_tui(lambda: self._execute(args, quiet=True), bus, target)
+            run_tui(lambda: self._execute(args, quiet=True), bus, target, cancel)
         else:
             self._execute(args, quiet=False)
 
