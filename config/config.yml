@@ -44,3 +44,4 @@ attack_plugins:
   - vulns
   - other
   - authz # Access control: IDOR / broken access control (risk 2 only)
+  - auth # JWT / token security: alg=none, RS256->HS256, kid, weak secret (risk 2 only)
