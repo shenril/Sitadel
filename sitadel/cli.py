@@ -9,6 +9,7 @@
 import argparse
 import sys
 import signal
+import threading
 from sitadel import __version__
 from sitadel.config import settings
 from sitadel.config.settings import Risk
@@ -20,6 +21,7 @@ from sitadel.modules.discovery import discover as discover_api
 from sitadel.report import Findings, write_report
 from sitadel.request.auth import Authenticator
 from sitadel.utils.datastore import Datastore
+from sitadel.utils.events import EventBus, Phase
 from sitadel.utils.logs import setup_logging
 from sitadel.utils.output import Output
 
@@ -145,6 +147,12 @@ class Sitadel(object):
             help="Report format for the findings (default: stdout only)",
         )
         parser.add_argument(
+            "--tui",
+            dest="tui",
+            action="store_true",
+            help="Show a live TUI dashboard (requires a real terminal)",
+        )
+        parser.add_argument(
             "-v",
             "--verbosity",
             action="count",
@@ -154,6 +162,30 @@ class Sitadel(object):
         parser.add_argument("--version", action="version", version=self.bn.version())
         args = parser.parse_args()
 
+        # Decide the front-end. The live TUI runs only when explicitly requested
+        # *and* attached to a real terminal (piped/CI runs fall back to stdout).
+        # The scan engine is identical either way; the TUI is just a consumer of
+        # the same event/finding stream, so it runs in a background worker while
+        # the dashboard owns the main thread.
+        use_tui = bool(getattr(args, "tui", False)) and sys.stdout.isatty()
+        if use_tui:
+            from sitadel.tui import run_tui
+
+            bus = EventBus()
+            Services.register("events", bus)
+            target = str(validator.validate_target(args.url))
+            run_tui(lambda: self._execute(args, quiet=True), bus, target)
+        else:
+            self._execute(args, quiet=False)
+
+    def _phase(self, name: str) -> None:
+        """Announce a scan phase to the event bus (no-op without a TUI)."""
+        try:
+            Services.get("events").publish(Phase(name))
+        except NameError:
+            pass
+
+    def _execute(self, args, quiet: bool = False):
         # Verify the target URL
         self.url = validator.validate_target(args.url)
 
@@ -168,7 +200,7 @@ class Sitadel(object):
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
         Services.register("logger", logger)
-        Services.register("output", Output(args.verbosity))
+        Services.register("output", Output(args.verbosity, quiet=quiet))
         Services.register("findings", Findings())
         Services.register("profile", TargetProfile())
         Services.register(
@@ -209,10 +241,12 @@ class Sitadel(object):
                 else:
                     Services.get("output").info("Authenticated to the target.")
 
-        # Display target and scan starting time
-        self.bn.preamble(self.url)
+        # Display target and scan starting time (the TUI renders its own header).
+        if not quiet:
+            self.bn.preamble(self.url)
         try:
             # Run the fingerprint modules
+            self._phase("fingerprint")
             self.ma.fingerprints(
                 args.fingerprint,
                 self.url,
@@ -225,6 +259,7 @@ class Sitadel(object):
                 Services.get("output").info(f"Target profile: {profile.summary()}")
 
             # Run the crawler to discover urls
+            self._phase("crawl")
             discovered_urls = self.ma.crawler(self.url, args.user_agent)
 
             # Record the crawl surface. The count goes to console + file; the
@@ -255,10 +290,14 @@ class Sitadel(object):
                         f"target(s) for injection"
                     )
 
-            # Hotfix on KeyboardInterrupt being redirected to scrapy crawler process
-            signal.signal(signal.SIGINT, signal.default_int_handler)
+            # Hotfix on KeyboardInterrupt being redirected to scrapy crawler
+            # process. ``signal.signal`` only works on the main thread, and in
+            # TUI mode the scan runs in a worker thread — skip it there.
+            if threading.current_thread() is threading.main_thread():
+                signal.signal(signal.SIGINT, signal.default_int_handler)
 
             # Run the attack modules on discovered urls
+            self._phase("attack")
             self.ma.attacks(args.attack, self.url, discovered_urls)
         except KeyboardInterrupt:
             raise
@@ -272,7 +311,8 @@ class Sitadel(object):
                 Services.get("output").info(
                     f"Wrote {len(findings)} finding(s) to {path}"
                 )
-            self.bn.postscript()
+            if not quiet:
+                self.bn.postscript()
 
 
 def main():

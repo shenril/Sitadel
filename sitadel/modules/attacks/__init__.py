@@ -7,8 +7,18 @@ from urllib.parse import parse_qsl, urlsplit
 from sitadel.config import settings
 from sitadel.config.settings import Risk
 from sitadel.utils.container import Services
+from sitadel.utils.events import PageTesting
 from .. import IPlugin
 from .targets import Target, taint_body, taint_target, taint_url
+
+
+def _publish(event) -> None:
+    """Publish to the event bus if one is registered (TUI mode); else no-op."""
+    try:
+        bus = Services.get("events")
+    except NameError:
+        return
+    bus.publish(event)
 
 __all__ = ["AttackPlugin", "Attacks", "Target", "taint_body", "taint_target"]
 
@@ -89,12 +99,18 @@ class AttackPlugin(metaclass=IPlugin):
         logger = Services.get("logger")
         request = Services.get("request_factory")
         targets = self.build_targets(crawled_urls)
+        # Announce each endpoint under test once (not per payload) so the crawl
+        # tree can mark it without flooding the event bus.
+        announced: set = set()
 
         def probe(payload, target):
             try:
                 kwargs = taint_target(target, payload)
                 if kwargs is None:
                     return
+                if target.url not in announced:
+                    announced.add(target.url)
+                    _publish(PageTesting(target.url))
                 output.debug("Testing: %s" % target.describe())
                 resp = request.send(**kwargs)
                 if resp is None:

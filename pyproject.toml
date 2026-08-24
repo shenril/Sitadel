@@ -38,6 +38,7 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = ["pytest", "flake8"]
+tui = ["textual>=0.60"]
 
 [project.urls]
 Homepage = "https://github.com/shenril/Sitadel"
