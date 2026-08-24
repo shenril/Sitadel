@@ -176,7 +176,21 @@ class Sitadel(object):
             Services.register("events", bus)
             Services.register("cancel", cancel)
             target = str(validator.validate_target(args.url))
-            run_tui(lambda: self._execute(args, quiet=True), bus, target, cancel)
+
+            def reporter(fmt: str):
+                """Write the collected findings in ``fmt``; return (path, n)."""
+                findings = Services.get("findings").all()
+                path = args.output or f"sitadel-report.{fmt}"
+                write_report(findings, fmt, path)
+                return path, len(findings)
+
+            # Auto-prompt for a format at the end only when one wasn't already
+            # requested on the command line (that path writes the report itself).
+            run_tui(
+                lambda: self._execute(args, quiet=True), bus, target, cancel,
+                reporter=reporter,
+                auto_export=(args.report_format == "stdout"),
+            )
         else:
             self._execute(args, quiet=False)
 

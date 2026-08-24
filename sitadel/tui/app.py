@@ -24,7 +24,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.message import Message
 from textual.screen import ModalScreen
-from textual.widgets import Footer, Static, Tree
+from textual.widgets import Button, Footer, Static, Tree
 
 from sitadel.utils.events import (
     FindingAdded,
@@ -103,6 +103,59 @@ class FindingDetail(ModalScreen):
         self.dismiss()
 
 
+class ExportModal(ModalScreen):
+    """Post-scan report format picker. Dismisses with the chosen format (or
+    ``None`` to skip)."""
+
+    BINDINGS = [
+        Binding("escape", "skip", "Skip"),
+        Binding("j", "pick('json')", "JSON"),
+        Binding("h", "pick('html')", "HTML"),
+        Binding("s", "pick('sarif')", "SARIF"),
+    ]
+
+    CSS = """
+    ExportModal { align: center middle; }
+    #export-box {
+        width: auto; height: auto; padding: 1 2;
+        border: round $primary; background: $surface;
+    }
+    #export-title { margin-bottom: 1; }
+    #export-buttons { height: auto; width: auto; }
+    #export-buttons Button { margin: 0 1; }
+    """
+
+    def __init__(self, count: int) -> None:
+        super().__init__()
+        self._count = count
+
+    def compose(self) -> ComposeResult:
+        from textual.containers import Horizontal
+        with VerticalScroll(id="export-box"):
+            yield Static(
+                Text.assemble(
+                    ("Scan finished — ", "bold"),
+                    (f"{self._count} finding(s). ", "green"),
+                    ("Export a report?", "bold"),
+                ),
+                id="export-title",
+            )
+            with Horizontal(id="export-buttons"):
+                yield Button("JSON (j)", id="json", variant="primary")
+                yield Button("HTML (h)", id="html", variant="primary")
+                yield Button("SARIF (s)", id="sarif", variant="primary")
+                yield Button("Skip (esc)", id="skip")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(None if event.button.id == "skip" else event.button.id)
+
+    def action_pick(self, fmt: str) -> None:
+        self.dismiss(fmt)
+
+    def action_skip(self) -> None:
+        self.dismiss(None)
+
+
 class SitadelApp(App):
     CSS = """
     #progress { height: 3; padding: 0 1; background: $panel; color: $text; }
@@ -114,15 +167,19 @@ class SitadelApp(App):
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("f", "cycle_filter", "Filter severity"),
+        ("e", "export", "Export report"),
         ("d", "toggle_theme", "Theme"),
     ]
 
-    def __init__(self, scan_fn, bus, target: str, cancel=None) -> None:
+    def __init__(self, scan_fn, bus, target: str, cancel=None,
+                 reporter=None, auto_export: bool = False) -> None:
         super().__init__()
         self._scan_fn = scan_fn
         self._bus = bus
         self._target = target
         self._cancel = cancel
+        self._reporter = reporter
+        self._auto_export = auto_export
         self._start = time.monotonic()
         self._end: float | None = None
         self._phase = "starting"
@@ -212,6 +269,12 @@ class SitadelApp(App):
                 self._clear_testing_marker()
                 self._render_progress()
                 self._render_status("Scan finished — press q to quit.")
+                # Offer a report format once the scan completes normally (skip
+                # when the user quit, or a --format was already given on the CLI).
+                cancelled = self._cancel is not None and self._cancel.is_set()
+                if self._auto_export and self._reporter is not None \
+                        and not cancelled:
+                    self._open_export()
 
     # --------------------------------------------------------- rendering #
     def _render_progress(self) -> None:
@@ -446,6 +509,31 @@ class SitadelApp(App):
             self._cancel.set()
             self._render_status("Cancelling scan…")
         self.exit()
+
+    def action_export(self) -> None:
+        if self._reporter is None:
+            self._render_status("Export unavailable.")
+            return
+        self._open_export()
+
+    def _open_export(self) -> None:
+        # Show the de-duplicated count the report will actually contain, so the
+        # modal matches the "Wrote N finding(s)" confirmation.
+        from sitadel.utils.container import Services
+        try:
+            count = len(Services.get("findings"))
+        except NameError:
+            count = sum(self._counts.values())
+        self.push_screen(ExportModal(count), self._do_export)
+
+    def _do_export(self, fmt) -> None:
+        if not fmt or self._reporter is None:
+            return
+        try:
+            path, count = self._reporter(fmt)
+            self._render_status(f"Wrote {count} finding(s) to {path}")
+        except Exception as err:  # never let an export error crash the UI
+            self._render_status(f"Export failed: {err}")
 
     def action_cycle_filter(self) -> None:
         idx = _FILTERS.index(self._filter)

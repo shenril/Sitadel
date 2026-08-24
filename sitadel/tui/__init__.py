@@ -11,13 +11,18 @@ from sitadel.utils.events import EventBus
 
 
 def run_tui(scan_fn, bus: EventBus, target: str,
-            cancel: threading.Event | None = None) -> None:
+            cancel: threading.Event | None = None,
+            reporter=None, auto_export: bool = False) -> None:
     """Launch the dashboard, running ``scan_fn`` in a background worker thread.
 
     ``scan_fn`` is the full scan engine (fingerprint → crawl → attack → report);
     it publishes events to ``bus`` as it runs. ``cancel`` is set when the user
-    quits so the scan can unwind cooperatively. This blocks until the user quits.
+    quits so the scan can unwind cooperatively. ``reporter(fmt)`` writes the
+    findings report and returns ``(path, count)``; when ``auto_export`` is set,
+    the app offers a format picker once the scan finishes. This blocks until the
+    user quits.
     """
     from sitadel.tui.app import SitadelApp
 
-    SitadelApp(scan_fn=scan_fn, bus=bus, target=target, cancel=cancel).run()
+    SitadelApp(scan_fn=scan_fn, bus=bus, target=target, cancel=cancel,
+               reporter=reporter, auto_export=auto_export).run()

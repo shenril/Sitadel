@@ -2,6 +2,8 @@
 level is announced to the bus, and the detail-modal renderer surfaces the
 finding's triage fields. Textual-dependent bits are skipped when textual is
 not installed (it is an optional 'tui' extra)."""
+import asyncio
+
 import pytest
 
 from sitadel.cli import Sitadel
@@ -39,3 +41,33 @@ def test_detail_text_includes_triage_fields():
                   "payload=", "Use parameterized"):
         if token not in plain:
             raise AssertionError(f"detail modal missing {token!r}")
+
+
+def test_auto_export_prompts_and_writes_chosen_format():
+    pytest.importorskip("textual")
+    from sitadel.tui.app import SitadelApp, ExportModal
+
+    calls = []
+
+    def reporter(fmt):
+        calls.append(fmt)
+        return (f"/tmp/report.{fmt}", 3)
+
+    async def _run():
+        bus = EventBus()
+        app = SitadelApp(scan_fn=lambda: None, bus=bus, target="t",
+                         reporter=reporter, auto_export=True)
+        async with app.run_test() as pilot:
+            # The no-op scan finishes immediately → the export modal auto-opens.
+            for _ in range(50):
+                await pilot.pause(0.1)
+                if isinstance(app.screen, ExportModal):
+                    break
+            if not isinstance(app.screen, ExportModal):
+                raise AssertionError("export modal must auto-open on finish")
+            await pilot.press("h")  # choose HTML
+            await pilot.pause(0.2)
+            if calls != ["html"]:
+                raise AssertionError(f"reporter called with {calls}, want ['html']")
+
+    asyncio.run(_run())
