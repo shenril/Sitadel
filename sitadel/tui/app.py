@@ -20,7 +20,10 @@ from urllib.parse import urlsplit
 from rich.text import Text
 from textual import on
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal
+from textual.binding import Binding
+from textual.containers import Horizontal, VerticalScroll
+from textual.message import Message
+from textual.screen import ModalScreen
 from textual.widgets import Footer, Static, Tree
 
 from sitadel.utils.events import (
@@ -32,6 +35,7 @@ from sitadel.utils.events import (
     ProgressSnap,
     ProgressStep,
     ProgressTotal,
+    RiskLevel,
     ScanFinished,
 )
 
@@ -46,6 +50,57 @@ _SEV = {
 _SEV_ORDER = ["critical", "high", "medium", "low", "info"]
 # Filter cycle: None (all) → each severity → back to None.
 _FILTERS = [None] + _SEV_ORDER
+
+# Risk level → (colour, filled dots out of 3). Matches Risk enum 0/1/2.
+_RISK = {
+    "NO_DANGER": ("green", 1),
+    "NOISY": ("yellow", 2),
+    "DANGEROUS": ("red", 3),
+}
+
+
+class FindingsTree(Tree):
+    """Findings pane. Repurposes Space (Tree's toggle) to open the detail modal;
+    the crawl tree keeps Space for expand/collapse."""
+
+    BINDINGS = [Binding("space", "show_detail", "Details")]
+
+    class DetailRequested(Message):
+        def __init__(self, node) -> None:
+            super().__init__()
+            self.node = node
+
+    def action_show_detail(self) -> None:
+        if self.cursor_node is not None:
+            self.post_message(self.DetailRequested(self.cursor_node))
+
+
+class FindingDetail(ModalScreen):
+    """Modal showing a finding group's evidence, standards, and remediation."""
+
+    BINDINGS = [Binding("escape,space,q,enter", "dismiss", "Close")]
+
+    CSS = """
+    FindingDetail { align: center middle; }
+    #detail-box {
+        width: 80%; max-width: 100; height: auto; max-height: 80%;
+        padding: 1 2; border: round $primary; background: $surface;
+    }
+    #detail-hint { color: $text-muted; margin-top: 1; }
+    """
+
+    def __init__(self, label: str, group: dict) -> None:
+        super().__init__()
+        self._label = label
+        self._group = group
+
+    def compose(self) -> ComposeResult:
+        with VerticalScroll(id="detail-box"):
+            yield Static(_detail_text(self._label, self._group))
+            yield Static("esc / space to close", id="detail-hint")
+
+    def action_dismiss(self) -> None:
+        self.dismiss()
 
 
 class SitadelApp(App):
@@ -71,6 +126,7 @@ class SitadelApp(App):
         self._start = time.monotonic()
         self._end: float | None = None
         self._phase = "starting"
+        self._risk: str | None = None
         self._crawled = 0
         self._testing_url: str | None = None
         self._done = False
@@ -92,13 +148,16 @@ class SitadelApp(App):
         yield Static(id="status")
         with Horizontal():
             yield Tree("Crawl tree", id="tree")
-            yield Tree("Findings", id="findings")
+            yield FindingsTree("Findings", id="findings")
         yield Footer()
 
     def on_mount(self) -> None:
         self.title = "Sitadel"
         self.query_one("#tree", Tree).root.expand()
-        self.query_one("#findings", Tree).root.expand()
+        findings = self.query_one("#findings", FindingsTree)
+        findings.root.expand()
+        # Focus the findings pane so ↑/↓ + Space (details) work immediately.
+        findings.focus()
         self._render_progress()
         self._render_status("Launching scan…")
         # Elapsed clock + bus drain, both on the UI loop.
@@ -127,6 +186,9 @@ class SitadelApp(App):
                 self._on_testing(event)
             elif isinstance(event, Phase):
                 self._phase = event.name
+                self._render_progress()
+            elif isinstance(event, RiskLevel):
+                self._risk = event.name
                 self._render_progress()
             elif isinstance(event, ProgressTotal):
                 self._prog_total = event.total
@@ -163,8 +225,10 @@ class SitadelApp(App):
             (clock, "bold"),
             ("   phase: ", "dim"),
             (self._phase, "bold magenta"),
-            (f"   crawled {self._crawled}   ", "green"),
+            ("   ", ""),
         )
+        line1.append_text(self._risk_badge())
+        line1.append(f"   crawled {self._crawled}   ", style="green")
         line1.append_text(self._progress_bar())
         counts = Text("  ")
         for sev in _SEV_ORDER:
@@ -190,6 +254,17 @@ class SitadelApp(App):
         bar.append(f" {pct:3d}%", style="bold")
         return bar
 
+    def _risk_badge(self) -> Text:
+        """``risk: ●●○ NOISY`` — filled dots + colour by scan risk level."""
+        if self._risk is None:
+            return Text("risk: —", style="dim")
+        colour, dots = _RISK.get(self._risk, ("white", 0))
+        badge = Text("risk: ", style="dim")
+        badge.append("●" * dots, style=f"bold {colour}")
+        badge.append("○" * (3 - dots), style="grey37")
+        badge.append(f" {self._risk}", style=f"bold {colour}")
+        return badge
+
     def _render_status(self, text: str) -> None:
         self.query_one("#status", Static).update(Text(text, style="dim"))
 
@@ -207,8 +282,13 @@ class SitadelApp(App):
                 "severity": sev,
                 "plugin": ev.plugin or "",
                 "count": 0,
-                "urls": {},  # relative-url → parameter (for de-dup + display)
+                "urls": {},  # (endpoint, param) → True (for de-dup + display)
                 "node": None,
+                # Representative triage detail (first occurrence) for the modal.
+                "evidence": ev.evidence,
+                "confidence": ev.confidence,
+                "cwe": ev.cwe,
+                "remediation": ev.remediation,
             }
             self._groups[label] = group
         group["count"] += 1
@@ -241,9 +321,10 @@ class SitadelApp(App):
 
     def _sync_group_node(self, label: str, group: dict) -> None:
         """Create or refresh a group node and its URL children incrementally."""
-        tree = self.query_one("#findings", Tree)
+        tree = self.query_one("#findings", FindingsTree)
         if group["node"] is None:
             group["node"] = tree.root.add(_group_text(label, group), expand=True)
+            group["node"]._sitadel_group_label = label  # type: ignore[attr-defined]
         else:
             group["node"].set_label(_group_text(label, group))
         node = group["node"]
@@ -341,6 +422,17 @@ class SitadelApp(App):
         else:
             self._render_status("Showing all findings.")
 
+    @on(FindingsTree.DetailRequested)
+    def _finding_detail(self, event) -> None:
+        """Space on the findings pane opens the detail modal for that group."""
+        node = event.node
+        label = getattr(node, "_sitadel_group_label", None)
+        if label is None and node is not None and node.parent is not None:
+            label = getattr(node.parent, "_sitadel_group_label", None)
+        group = self._groups.get(label) if label else None
+        if group is not None:
+            self.push_screen(FindingDetail(label, group))
+
     # --------------------------------------------------------- actions #
     def action_quit(self) -> None:  # type: ignore[override]
         """Signal the scan to stop, then close the UI.
@@ -394,6 +486,37 @@ def _group_label(title: str | None) -> str:
             first = first[len(lead):]
             break
     return first.strip() or "finding"
+
+
+def _detail_text(label: str, group: dict) -> Text:
+    """Rich renderable for the finding-detail modal."""
+    sev = group["severity"]
+    colour = _SEV.get(sev, "grey62")
+    text = Text()
+    text.append(f"{sev.upper()}  ", style=f"bold {colour}")
+    text.append(f"{label}\n\n", style="bold")
+
+    def row(name, value, style=""):
+        if value:
+            text.append(f"{name:12}", style="dim")
+            text.append(f"{value}\n", style=style)
+
+    row("Plugin", group.get("plugin"))
+    row("Confidence", group.get("confidence"))
+    row("CWE", group.get("cwe"))
+    row("Occurrences", str(group.get("count") or ""))
+    text.append("\n")
+    text.append("Endpoints\n", style="dim")
+    for (endpoint, param) in group["urls"]:
+        text.append(f"  {endpoint}", style="cyan")
+        text.append(f"  · {param}\n" if param else "\n", style="yellow")
+    if group.get("evidence"):
+        text.append("\nEvidence\n", style="dim")
+        text.append(f"  {group['evidence']}\n")
+    if group.get("remediation"):
+        text.append("\nRemediation\n", style="dim")
+        text.append(f"  {group['remediation']}\n", style="green")
+    return text
 
 
 def _group_text(label: str, group: dict) -> Text:

@@ -21,7 +21,7 @@ from sitadel.modules.discovery import discover as discover_api
 from sitadel.report import Findings, write_report
 from sitadel.request.auth import Authenticator
 from sitadel.utils.datastore import Datastore
-from sitadel.utils.events import EventBus, Phase
+from sitadel.utils.events import EventBus, Phase, RiskLevel
 from sitadel.utils.logs import setup_logging
 from sitadel.utils.output import Output
 
@@ -187,6 +187,15 @@ class Sitadel(object):
         except NameError:
             pass
 
+    def _announce_risk(self) -> None:
+        """Announce the configured risk level to the event bus (TUI header)."""
+        try:
+            bus = Services.get("events")
+        except NameError:
+            return
+        risk = Risk(int(settings.risk))
+        bus.publish(RiskLevel(risk.value, risk.name))
+
     def _execute(self, args, quiet: bool = False):
         # Verify the target URL
         self.url = validator.validate_target(args.url)
@@ -195,6 +204,7 @@ class Sitadel(object):
         settings.from_yaml(args.config)
         if args.risk is not None:
             settings.risk = Risk(args.risk)
+        self._announce_risk()
 
         # Setting up the logger
         logger = setup_logging(args.verbosity)

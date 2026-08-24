@@ -30,6 +30,14 @@ class Phase:
 
 
 @dataclass
+class RiskLevel:
+    """The configured risk level the scan runs at (0/1/2 → name)."""
+
+    value: int
+    name: str
+
+
+@dataclass
 class Log:
     """A human-readable log line (mirrors ``Output.info``/``error``)."""
 
