@@ -7,8 +7,31 @@ from urllib.parse import parse_qsl, urlsplit
 from sitadel.config import settings
 from sitadel.config.settings import Risk
 from sitadel.utils.container import Services
+from sitadel.utils.events import (
+    PageTesting,
+    ProgressSnap,
+    ProgressStep,
+    ProgressTotal,
+)
 from .. import IPlugin
 from .targets import Target, taint_body, taint_target, taint_url
+
+
+def _publish(event) -> None:
+    """Publish to the event bus if one is registered (TUI mode); else no-op."""
+    try:
+        bus = Services.get("events")
+    except NameError:
+        return
+    bus.publish(event)
+
+
+def _cancelled() -> bool:
+    """Whether the user asked to stop the scan (TUI quit); else False."""
+    try:
+        return Services.get("cancel").is_set()
+    except NameError:
+        return False
 
 __all__ = ["AttackPlugin", "Attacks", "Target", "taint_body", "taint_target"]
 
@@ -89,12 +112,22 @@ class AttackPlugin(metaclass=IPlugin):
         logger = Services.get("logger")
         request = Services.get("request_factory")
         targets = self.build_targets(crawled_urls)
+        # Announce each endpoint under test once (not per payload) so the crawl
+        # tree can mark it without flooding the event bus.
+        announced: set = set()
 
         def probe(payload, target):
             try:
+                if _cancelled():
+                    return
                 kwargs = taint_target(target, payload)
                 if kwargs is None:
                     return
+                if target.url not in announced:
+                    announced.add(target.url)
+                    _publish(PageTesting(target.url))
+                    # One progress unit per (module, target) as it is reached.
+                    _publish(ProgressStep(1))
                 output.debug("Testing: %s" % target.describe())
                 resp = request.send(**kwargs)
                 if resp is None:
@@ -129,6 +162,10 @@ class AttackPlugin(metaclass=IPlugin):
             ]
             try:
                 for future in as_completed(futures):
+                    if _cancelled():
+                        # Drop queued probes; in-flight ones finish on their own.
+                        executor.shutdown(cancel_futures=True)
+                        break
                     future.result()
             except KeyboardInterrupt:
                 executor.shutdown(False)
@@ -191,10 +228,20 @@ class Attacks:
                             name=instance.__class__.__name__
                         )
                     )
-            attacks = [
-                (instance, instance.process(self.start_url, self.crawled_urls))
-                for instance in selected
-            ]
+            # Progress denominator: one unit per (attack module × target), so a
+            # scan of N modules over M targets is N*M units. Injection modules
+            # advance it per target (ProgressStep above); every module also
+            # snaps to its full share when it finishes, so modules that do not
+            # iterate targets still move the bar.
+            unit = max(len(AttackPlugin.build_targets(self.crawled_urls)), 1)
+            _publish(ProgressTotal(len(selected) * unit))
+            attacks = []
+            for i, instance in enumerate(selected):
+                if _cancelled():
+                    break
+                result = instance.process(self.start_url, self.crawled_urls)
+                attacks.append((instance, result))
+                _publish(ProgressSnap((i + 1) * unit))
             for category, result in attacks:
                 if result is not None:
                     self.output.finding(

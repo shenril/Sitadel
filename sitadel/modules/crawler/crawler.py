@@ -9,6 +9,24 @@ from selectolax.parser import HTMLParser
 
 from sitadel.config import settings
 from sitadel.utils.container import Services
+from sitadel.utils.events import PageDiscovered
+
+
+def _publish(event) -> None:
+    """Publish to the event bus if one is registered (TUI mode); else no-op."""
+    try:
+        bus = Services.get("events")
+    except NameError:
+        return
+    bus.publish(event)
+
+
+def _cancelled() -> bool:
+    """Whether the user asked to stop the scan (TUI quit); else False."""
+    try:
+        return Services.get("cancel").is_set()
+    except NameError:
+        return False
 
 # Default crawl bounds; overridable through the optional `crawler:` config block.
 _DEFAULTS = {
@@ -111,6 +129,7 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
 
     seen = {url_signature(start_url, ignore)}
     results = {start_url}
+    _publish(PageDiscovered(start_url))
     queue: asyncio.Queue = asyncio.Queue()
     queue.put_nowait((start_url, 0))
 
@@ -130,7 +149,8 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
             while True:
                 url, depth = await queue.get()
                 try:
-                    if len(results) > max_pages:
+                    # Fast-drain the frontier on cancel so queue.join() returns.
+                    if _cancelled() or len(results) > max_pages:
                         continue
                     html = await _fetch(session, url, timeout)
                     if html is None or depth >= max_depth:
@@ -147,6 +167,7 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
                         if len(results) >= max_pages:
                             continue
                         results.add(link)
+                        _publish(PageDiscovered(link))
                         queue.put_nowait((link, depth + 1))
                 except Exception:
                     pass
