@@ -24,17 +24,16 @@ class Bfile(AttackPlugin):
 
     def process(self, start_url, crawled_urls):
         self.output.info("Checking common backup files..")
-        db = self.datastore.open("bfile.txt", "r")
-        dbfiles = [x.strip() for x in db.readlines()]
-        db1 = self.datastore.open("cfile.txt", "r")
-        dbfiles1 = [x.strip() for x in db1.readlines()]
+        with self.datastore.open("bfile.txt", "r") as db:
+            dbfiles = [x.strip() for x in db]
+        with self.datastore.open("cfile.txt", "r") as db1:
+            dbfiles1 = [x.strip() for x in db1]
         urls = []
         for b in dbfiles:
             for d in dbfiles1:
                 bdir = b.replace("[name]", d)
                 urls.append(urljoin(str(start_url), str(bdir)))
-        # We launch ThreadPoolExecutor with max_workers to None to get default optimization
-        # https://docs.python.org/3/library/concurrent.futures.html
+        # Bounded thread pool so the wordlist is probed concurrently.
         with ThreadPoolExecutor(max_workers=20) as executor:
             futures = [executor.submit(self.check_url, url) for url in urls]
             try:

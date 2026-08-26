@@ -1,4 +1,3 @@
-import re
 from sitadel.utils.container import Services
 from .. import AttackPlugin
 
@@ -9,8 +8,9 @@ class Html(AttackPlugin):
     logger = Services.get("logger")
 
     def detect(self, resp, payload):
-        # Match the injected HTML literally, not as a regex.
-        if resp.status_code == 200 and re.search(re.escape(payload), resp.text):
+        # The payload is reflected literally; a plain substring test is exact
+        # (case-sensitive) and cheaper than escaping it into a regex per call.
+        if resp.status_code == 200 and payload in resp.text:
             return "HTML Code Injection"
         return None
 

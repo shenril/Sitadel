@@ -2,6 +2,10 @@ import re
 from sitadel.utils.container import Services
 from .. import AttackPlugin
 
+_PHPINFO = re.compile(
+    r'<title>phpinfo[()]</title>|<h1 class="p">PHP Version (.*?)</h1>'
+)
+
 
 class Php(AttackPlugin):
     # PHP code injection only makes sense against a PHP application.
@@ -11,10 +15,7 @@ class Php(AttackPlugin):
     logger = Services.get("logger")
 
     def detect(self, resp, payload):
-        if resp.status_code == 200 and re.search(
-            r'<title>phpinfo[()]</title>|<h1 class="p">PHP Version (.*?)</h1>',
-            resp.text,
-        ):
+        if resp.status_code == 200 and _PHPINFO.search(resp.text):
             return "PHP Code Injection"
         return None
 

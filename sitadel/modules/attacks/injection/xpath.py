@@ -2,6 +2,8 @@ import re
 from sitadel.utils.container import Services
 from .. import AttackPlugin
 
+_XPATH_ERRORS = re.compile(r"XPATH syntax error:|XPathException", re.I)
+
 
 class Xpath(AttackPlugin):
     output = Services.get("output")
@@ -10,7 +12,7 @@ class Xpath(AttackPlugin):
     logger = Services.get("logger")
 
     def detect(self, resp, payload):
-        if re.search(r"XPATH syntax error:|XPathException", resp.text, re.I):
+        if _XPATH_ERRORS.search(resp.text):
             return "XPath Injection"
         return None
 

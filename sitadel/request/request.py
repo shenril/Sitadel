@@ -30,7 +30,6 @@ class SingleRequest:
         self.timeout = timeout
         self.random_agent = random_agent
         self.verify = verify
-        self.ruagent = ragent.RandomUserAgent()
         # Optional authentication context (headers + a shared cookie jar).
         self.authenticator = None
 
