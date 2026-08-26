@@ -3,6 +3,10 @@ from sitadel.utils.container import Services
 from sitadel.config.settings import Risk
 from .. import AttackPlugin
 
+_FLAG = re.compile(
+    r"root:/root:/bin/bash|default=multi([0])disk([0])rdisk([0])partition([1])\\WINDOWS"
+)
+
 
 class Rfi(AttackPlugin):
     level = Risk.DANGEROUS
@@ -11,10 +15,8 @@ class Rfi(AttackPlugin):
     datastore = Services.get("datastore")
     logger = Services.get("logger")
 
-    _FLAG = r"root:/root:/bin/bash|default=multi([0])disk([0])rdisk([0])partition([1])\\WINDOWS"
-
     def detect(self, resp, payload):
-        if re.search(self._FLAG, resp.text):
+        if _FLAG.search(resp.text):
             return "Remote File Inclusion (RFI)"
         return None
 

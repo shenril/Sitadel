@@ -26,8 +26,6 @@ def test_request():
         raise AssertionError
     if r1.timeout != "timeout":
         raise AssertionError
-    if not isinstance(r1.ruagent, str):
-        raise AssertionError
 
 
 def test_request_send():

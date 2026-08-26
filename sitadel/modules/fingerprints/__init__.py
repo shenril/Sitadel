@@ -71,11 +71,14 @@ class Fingerprints:
                 )
                 return
 
-            # Pass the result over the fingerprint module for processing
-            fingerprints = [
-                (p(), p().process(resp.headers, resp.text))
-                for p in FingerprintPlugin.enabled()
-            ]
+            # Pass the result over the fingerprint module for processing.
+            # Instantiate each plugin once (not twice) per scan.
+            fingerprints = []
+            for plugin in FingerprintPlugin.enabled():
+                instance = plugin()
+                fingerprints.append(
+                    (instance, instance.process(resp.headers, resp.text))
+                )
 
             # Aggregate detections into the shared TargetProfile (if registered)
             # so the attack phase can decide which classes are worth launching.

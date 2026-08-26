@@ -30,8 +30,7 @@ class Admin(AttackPlugin):
             urls = map(
                 lambda adminpath: urljoin(str(start_url), str(adminpath)), dbfiles
             )
-            # We launch ThreadPoolExecutor with max_workers to None to get default optimization
-            # https://docs.python.org/3/library/concurrent.futures.html
+            # Bounded thread pool so the wordlist is probed concurrently.
             with ThreadPoolExecutor(max_workers=20) as executor:
                 futures = [executor.submit(self.check_url, url) for url in urls]
                 try:
