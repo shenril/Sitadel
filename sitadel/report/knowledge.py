@@ -124,6 +124,30 @@ KNOWLEDGE: dict[str, dict] = {
             "and object-level permissions on every protected route."
         ),
     },
+    "websocket": {
+        "severity": Severity.LOW,
+        "confidence": "firm",
+        "cwe": "CWE-1385",
+        "owasp": "A05:2021-Security Misconfiguration",
+        "wstg": "WSTG-CLNT-10",
+        "remediation": (
+            "Authenticate the WebSocket handshake and validate the Origin header "
+            "against an allow-list; do not expose sensitive channels without "
+            "authorization on the upgrade request."
+        ),
+    },
+    "cswsh": {
+        "severity": Severity.HIGH,
+        "confidence": "firm",
+        "cwe": "CWE-1385",
+        "owasp": "A01:2021-Broken Access Control",
+        "wstg": "WSTG-CLNT-10",
+        "remediation": (
+            "Strictly validate the Origin header on the WebSocket handshake with "
+            "an allow-list and bind each connection to a per-session CSRF token; "
+            "reject handshakes from unexpected origins."
+        ),
+    },
     "jwt": {
         "severity": Severity.CRITICAL,
         "confidence": "firm",

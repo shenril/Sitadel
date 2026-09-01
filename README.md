@@ -91,6 +91,7 @@ python -m sitadel --help
     - Cross Site Tracing (XST)
     - PHPINFO
     - .Listing
+    - WebSocket Discovery & CSWSH
 
   - Vulnerabilities
     - ShellShock

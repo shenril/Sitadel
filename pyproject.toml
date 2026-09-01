@@ -34,6 +34,7 @@ dependencies = [
     "jsonschema>=4.0",
     "PyJWT>=2.8",
     "cryptography>=42",
+    "websocket-client>=1.7",
 ]
 
 [project.optional-dependencies]
