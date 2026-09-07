@@ -1,5 +1,3 @@
-import re
-
 from sitadel.modules.fingerprints import FingerprintPlugin
 from sitadel.utils.container import Services
 
@@ -88,14 +86,9 @@ class Headers(FingerprintPlugin):
                   'X-UA-Compatible'
                   )
 
-        if not re.search(r'X-Frame-Options', str(headers.keys()), re.I):
-            self.output.finding('X-Frame-Options header is not present.')
-
-        if not re.search(r'Strict-Transport-Security', str(headers.keys()), re.I):
-            self.output.finding('Strict-Transport-Security header is not present.')
-
-        if not re.search(r'x-xss-protection', str(headers.keys()), re.I):
-            self.output.finding('X-XSS-Protection header is not present.')
+        # Security-header hygiene (X-Frame-Options, HSTS, CSP, …) is audited by
+        # the dedicated SecurityHeaders module (secheaders.py); this module only
+        # reports uncommon/unexpected headers below to avoid double-reporting.
         try:
             for key in headers.keys():
                 if key not in fields:

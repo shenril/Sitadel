@@ -148,6 +148,33 @@ KNOWLEDGE: dict[str, dict] = {
             "reject handshakes from unexpected origins."
         ),
     },
+    "security_headers": {
+        "severity": Severity.LOW,
+        "confidence": "firm",
+        "cwe": "CWE-693",
+        "owasp": "A05:2021-Security Misconfiguration",
+        "wstg": "WSTG-CONF-07",
+        "remediation": (
+            "Set the missing/weak security headers: a restrictive "
+            "Content-Security-Policy, Strict-Transport-Security with an adequate "
+            "max-age and includeSubDomains, X-Content-Type-Options: nosniff, "
+            "Referrer-Policy, Permissions-Policy, and X-Frame-Options (or CSP "
+            "frame-ancestors)."
+        ),
+    },
+    "cors": {
+        "severity": Severity.HIGH,
+        "confidence": "firm",
+        "cwe": "CWE-942",
+        "owasp": "A05:2021-Security Misconfiguration",
+        "wstg": "WSTG-CLNT-07",
+        "remediation": (
+            "Do not reflect arbitrary Origins and never combine a wildcard or "
+            "reflected Access-Control-Allow-Origin with "
+            "Access-Control-Allow-Credentials: true. Allow-list trusted origins "
+            "explicitly and echo only a validated origin."
+        ),
+    },
     "jwt": {
         "severity": Severity.CRITICAL,
         "confidence": "firm",

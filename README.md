@@ -61,6 +61,7 @@ python -m sitadel --help
   - Operating System (Linux,Unix,..)
   - Language (PHP,Ruby,...)
   - Cookie Security
+  - Security Headers Audit
   - Content Delivery Networks (CDN)
 
 - Attacks:
@@ -92,6 +93,7 @@ python -m sitadel --help
     - PHPINFO
     - .Listing
     - WebSocket Discovery & CSWSH
+    - CORS Misconfiguration
 
   - Vulnerabilities
     - ShellShock
