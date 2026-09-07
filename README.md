@@ -82,6 +82,8 @@ python -m sitadel --help
     - Cross Site Scripting (XSS)
     - Remote File Inclusion (RFI)
     - PHP Code Injection
+    - Server-Side Template Injection (SSTI)
+    - Path Traversal / LFI
 
   - Other
     - HTTP Allow Methods
@@ -94,6 +96,7 @@ python -m sitadel --help
     - .Listing
     - WebSocket Discovery & CSWSH
     - CORS Misconfiguration
+    - Open Redirect
 
   - Vulnerabilities
     - ShellShock

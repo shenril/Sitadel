@@ -175,6 +175,42 @@ KNOWLEDGE: dict[str, dict] = {
             "explicitly and echo only a validated origin."
         ),
     },
+    "open_redirect": {
+        "severity": Severity.MEDIUM,
+        "confidence": "firm",
+        "cwe": "CWE-601",
+        "owasp": "A01:2021-Broken Access Control",
+        "wstg": "WSTG-CLNT-04",
+        "remediation": (
+            "Do not build redirects from user-controlled input. Use an allow-list "
+            "of permitted destinations (or server-side keys mapping to URLs) and "
+            "reject absolute/protocol-relative targets to external hosts."
+        ),
+    },
+    "ssti": {
+        "severity": Severity.CRITICAL,
+        "confidence": "firm",
+        "cwe": "CWE-1336",
+        "owasp": "A03:2021-Injection",
+        "wstg": "WSTG-INPV-18",
+        "remediation": (
+            "Never render user input as a template. Use logic-less templates or a "
+            "sandboxed engine, pass user data only as bound variables, and keep "
+            "templates static and server-defined."
+        ),
+    },
+    "traversal": {
+        "severity": Severity.HIGH,
+        "confidence": "firm",
+        "cwe": "CWE-22",
+        "owasp": "A01:2021-Broken Access Control",
+        "wstg": "WSTG-ATHZ-01",
+        "remediation": (
+            "Do not build filesystem paths from user input. Canonicalize and "
+            "confirm the resolved path stays within an allowed base directory, "
+            "use an allow-list of filenames, and reject traversal sequences."
+        ),
+    },
     "jwt": {
         "severity": Severity.CRITICAL,
         "confidence": "firm",

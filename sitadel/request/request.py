@@ -52,8 +52,12 @@ class SingleRequest:
         return None
 
     def send(self, url, method="GET", payload=None, headers=None, cookies=None,
-             _retry=True):
+             allow_redirects=None, _retry=True):
         output = Services.get("output")
+        # ``allow_redirects`` defaults to the instance's ``redirect`` setting;
+        # callers pass ``False`` to inspect a redirect (e.g. the open-redirect
+        # check reads the Location header without following it off-site).
+        follow = self.redirect if allow_redirects is None else allow_redirects
         prepped = self.prepare_request(url, method, payload, headers, cookies)
         # File-only trace of every request the scan makes. Since all attack
         # modules send their probes through here, this records exactly which
@@ -67,7 +71,7 @@ class SingleRequest:
                 prepped,
                 timeout=self.timeout,
                 proxies={"http": self.proxy, "https": self.proxy, "ftp": self.proxy},
-                allow_redirects=self.redirect,
+                allow_redirects=follow,
                 verify=self.verify,
             )
             # If the session dropped (login page returned), re-authenticate once
@@ -77,7 +81,7 @@ class SingleRequest:
                     and self.authenticator.looks_logged_out(resp):
                 self.authenticator.login(self.session, self.verify, self.timeout)
                 return self.send(url, method, payload, headers, cookies,
-                                 _retry=False)
+                                 allow_redirects=allow_redirects, _retry=False)
             return resp
         except Timeout:
             # requests raises requests.exceptions.Timeout (a RequestException),
