@@ -32,6 +32,11 @@ class Target:
     ``body_format`` is ``None`` for a GET query-string target (parameters live
     in ``url``); otherwise it is one of :data:`BODY_FORMATS` and ``params`` maps
     parameter names to sample values that get replaced by the payload.
+
+    ``fixed`` holds parameters that must be sent **verbatim** rather than
+    tainted — hidden/CSRF form fields captured at crawl time. They are merged
+    into the query or body alongside the tainted ``params`` so a token-protected
+    form is submitted with its token intact (see the HTML-forms producer, #70).
     """
 
     url: str
@@ -39,6 +44,7 @@ class Target:
     headers: dict = field(default_factory=dict)
     body_format: str | None = None
     params: dict = field(default_factory=dict)
+    fixed: dict = field(default_factory=dict)
 
     def describe(self) -> str:
         if self.body_format:
@@ -46,38 +52,56 @@ class Target:
         return self.url
 
 
-def taint_url(url: str, payload: str) -> str | None:
-    """Rebuild ``url`` with every query parameter value replaced by ``payload``.
+def taint_url(url: str, payload: str, fixed=()) -> str | None:
+    """Rebuild ``url`` with each query parameter value replaced by ``payload``.
 
-    Returns ``None`` when there are no query parameters to inject into.
+    Parameter names listed in ``fixed`` keep their existing value (used for
+    hidden/CSRF fields of a GET form); every other value is tainted. Returns
+    ``None`` when there are no query parameters to inject into.
     """
     parts = urlsplit(url)
-    params = dict(parse_qsl(parts.query))
-    if not params:
+    pairs = parse_qsl(parts.query, keep_blank_values=True)
+    if not pairs:
         return None
-    tainted = {name: payload for name in params}
+    fixed = set(fixed)
+    tainted = [
+        (name, value if name in fixed else payload) for name, value in pairs
+    ]
     return urlunsplit(
         (parts.scheme, parts.netloc, parts.path, urlencode(tainted), parts.fragment)
     )
 
 
-def taint_body(params: dict, payload: str, body_format: str) -> str:
+def taint_body(params: dict, payload: str, body_format: str, fixed: dict = None) -> str:
     """Encode ``params`` with every value replaced by ``payload``.
 
     Supports ``json`` (object), ``xml`` (``<root>`` with a child per param) and
-    ``form`` (url-encoded). Values are payload-tainted so the injection reaches
-    each field in turn-agnostic fashion (all fields at once, like ``taint_url``).
+    ``form`` (url-encoded). Values in ``params`` are payload-tainted so the
+    injection reaches each field at once (like ``taint_url``); ``fixed`` fields
+    (hidden/CSRF) are merged in **verbatim** so token-protected forms submit a
+    valid token.
     """
-    names = list(params) or ["input"]
+    fixed = fixed or {}
+    names = list(params)
+    if not names and not fixed:
+        names = ["input"]
     if body_format == "json":
-        return json.dumps({name: payload for name in names})
+        data = {name: payload for name in names}
+        data.update(fixed)
+        return json.dumps(data)
     if body_format == "xml":
         body = "".join(
             f"<{name}>{_xml_escape(payload)}</{name}>" for name in names
         )
+        body += "".join(
+            f"<{name}>{_xml_escape(str(value))}</{name}>"
+            for name, value in fixed.items()
+        )
         return f"<root>{body}</root>"
     if body_format == "form":
-        return urlencode({name: payload for name in names})
+        data = {name: payload for name in names}
+        data.update(fixed)
+        return urlencode(data)
     raise ValueError(f"unknown body_format: {body_format}")
 
 
@@ -88,7 +112,7 @@ def taint_target(target: Target, payload: str) -> dict | None:
     query parameters), so callers skip it exactly as the URL-only code did.
     """
     if target.body_format in BODY_FORMATS:
-        body = taint_body(target.params, payload, target.body_format)
+        body = taint_body(target.params, payload, target.body_format, target.fixed)
         headers = dict(target.headers)
         headers.setdefault("Content-Type", _CONTENT_TYPE[target.body_format])
         method = target.method if target.method != "GET" else "POST"
@@ -98,7 +122,7 @@ def taint_target(target: Target, payload: str) -> dict | None:
             "payload": body,
             "headers": headers,
         }
-    tainted = taint_url(target.url, payload)
+    tainted = taint_url(target.url, payload, fixed=target.fixed.keys())
     if tainted is None:
         return None
     return {

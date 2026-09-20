@@ -17,6 +17,7 @@ Sitadel is basically an update for WAScan making it compatible for python >= 3.1
 It allows more flexibility for you to write new modules and implement new features :
 
 - Frontend framework detection
+- HTML form discovery with POST/body parameter injection
 - Content Delivery Network detection
 - Define Risk Level to allow for scans
 - Plugin system

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import asyncio
-from urllib.parse import parse_qsl, urljoin, urlsplit
+from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit
 
 import aiohttp
 from requests.utils import dict_from_cookiejar
 from selectolax.parser import HTMLParser
 
 from sitadel.config import settings
+from sitadel.modules.attacks.targets import Target
 from sitadel.utils.container import Services
 from sitadel.utils.events import PageDiscovered
 
@@ -104,6 +105,88 @@ def _extract_links(base_url: str, html: str) -> list[str]:
     return links
 
 
+# Input types that submit no user-controllable value (never injectable).
+_SKIP_INPUT_TYPES = {"submit", "button", "image", "reset"}
+
+
+def _extract_forms(base_url: str, html: str, host: str) -> list[Target]:
+    """Turn each same-host ``<form>`` into an injectable :class:`Target`.
+
+    User-controllable fields become tainted ``params``; hidden fields (incl.
+    CSRF tokens) become ``fixed`` (sent verbatim). GET forms bake the field
+    names into the query so the shared ``taint_url`` path handles them; POST
+    forms become url-encoded body targets. Multipart / file-upload forms are
+    skipped for now (the body encoder has no multipart support).
+    """
+    tree = HTMLParser(html)
+    base = base_url
+    base_node = tree.css_first("base[href]")
+    if base_node is not None:
+        base = urljoin(base_url, base_node.attributes.get("href") or "")
+
+    targets: list[Target] = []
+    for form in tree.css("form"):
+        action = urljoin(base, (form.attributes.get("action") or "").strip())
+        action = action.split("#", 1)[0]
+        parts = urlsplit(action)
+        if parts.scheme not in ("http", "https") or parts.hostname != host:
+            continue
+        method = (form.attributes.get("method") or "GET").strip().upper()
+        enctype = (form.attributes.get("enctype") or "").lower()
+
+        injectable: dict = {}
+        fixed: dict = {}
+        has_file = False
+        for node in form.css("input[name], textarea[name], select[name]"):
+            name = node.attributes.get("name")
+            if not name:
+                continue
+            if node.tag == "input":
+                itype = (node.attributes.get("type") or "text").strip().lower()
+            else:
+                itype = node.tag  # "textarea" / "select"
+            if itype in _SKIP_INPUT_TYPES:
+                continue
+            if itype == "file":
+                has_file = True
+                continue
+            value = node.attributes.get("value") or ""
+            if itype == "hidden":
+                fixed[name] = value
+            else:
+                injectable[name] = value
+
+        # v1: multipart / file-upload forms are out of scope.
+        if has_file or "multipart" in enctype:
+            continue
+        # Nothing user-controllable to inject into.
+        if not injectable:
+            continue
+
+        if method == "POST":
+            targets.append(Target(
+                url=action, method="POST", body_format="form",
+                params=injectable, fixed=fixed,
+            ))
+        else:
+            # GET form: fields live in the query string; taint_url skips the
+            # fixed keys, so hidden values ride along untainted.
+            query = {**{name: "" for name in injectable}, **fixed}
+            url = action + ("?" + urlencode(query) if query else "")
+            targets.append(Target(
+                url=url, method="GET", params=injectable, fixed=fixed,
+            ))
+    return targets
+
+
+def form_signature(target: Target) -> tuple:
+    """Collapse forms sharing action + method + field names to one representative."""
+    parts = urlsplit(target.url)
+    names = tuple(sorted(list(target.params) + list(target.fixed)))
+    return (parts.scheme.lower(), parts.netloc.lower(), parts.path,
+            target.method, target.body_format, names)
+
+
 async def _fetch(session: aiohttp.ClientSession, url: str, timeout: int) -> str | None:
     try:
         async with session.get(
@@ -129,6 +212,9 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
 
     seen = {url_signature(start_url, ignore)}
     results = {start_url}
+    # Discovered HTML forms, de-duplicated by their shape (see form_signature).
+    forms: list[Target] = []
+    form_seen: set = set()
     _publish(PageDiscovered(start_url))
     queue: asyncio.Queue = asyncio.Queue()
     queue.put_nowait((start_url, 0))
@@ -153,7 +239,18 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
                     if _cancelled() or len(results) > max_pages:
                         continue
                     html = await _fetch(session, url, timeout)
-                    if html is None or depth >= max_depth:
+                    if html is None:
+                        continue
+                    # Collect forms on every fetched page (leaves included), so
+                    # a form at max depth is still discovered.
+                    for target in _extract_forms(url, html, host):
+                        sig = form_signature(target)
+                        if sig in form_seen:
+                            continue
+                        form_seen.add(sig)
+                        forms.append(target)
+                        _publish(PageDiscovered(target.url, is_form=True))
+                    if depth >= max_depth:
                         continue
                     for link in _extract_links(url, html):
                         if urlsplit(link).hostname != host:
@@ -180,10 +277,19 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
             task.cancel()
         await asyncio.gather(*workers, return_exceptions=True)
 
-    return sorted(results)
+    return sorted(results), forms
 
 
 def crawl(url, user_agent):
     output = Services.get("output")
     output.info("Start crawling the target website")
-    return asyncio.run(_crawl(str(url), user_agent, _config()))
+    urls, form_targets = asyncio.run(_crawl(str(url), user_agent, _config()))
+    # Register discovered forms as injectable targets, mirroring how API
+    # discovery registers ``api_targets``; ``build_targets`` extends with them.
+    # The public return stays ``list[str]`` so existing callers are unaffected.
+    if form_targets:
+        Services.register("form_targets", form_targets)
+        output.info(
+            "Crawler discovered %d HTML form target(s)" % len(form_targets)
+        )
+    return urls

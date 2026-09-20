@@ -97,6 +97,14 @@ class AttackPlugin(metaclass=IPlugin):
             api_targets = None
         if api_targets:
             targets.extend(api_targets)
+        # HTML forms discovered by the crawler (registered like api_targets), so
+        # every injection module reaches POST/GET form parameters too (#70).
+        try:
+            form_targets = Services.get("form_targets")
+        except NameError:
+            form_targets = None
+        if form_targets:
+            targets.extend(form_targets)
         return targets
 
     def run_injection(self, payloads, crawled_urls, detector, workers=20):
