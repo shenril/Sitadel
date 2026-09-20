@@ -77,3 +77,40 @@ def test_describe():
     d = Target(url="http://h/x", method="POST", body_format="json").describe()
     if d != "POST http://h/x (json body)":
         raise AssertionError
+
+
+def test_taint_body_form_keeps_fixed_fields_untainted():
+    body = taint_body({"q": "1"}, "P", "form", fixed={"csrf": "tok123"})
+    if "q=P" not in body or "csrf=tok123" not in body:
+        raise AssertionError
+
+
+def test_taint_body_json_merges_fixed():
+    data = json.loads(taint_body({"user": "1"}, "P", "json", fixed={"csrf": "t"}))
+    if data != {"user": "P", "csrf": "t"}:
+        raise AssertionError
+
+
+def test_taint_url_preserves_fixed_keys():
+    # A GET form's hidden field (csrf) rides along untainted; the rest is tainted.
+    tainted = taint_url("http://h/s?q=&csrf=tok", "P", fixed=("csrf",))
+    if "q=P" not in tainted or "csrf=tok" not in tainted:
+        raise AssertionError
+
+
+def test_taint_target_post_form_preserves_csrf():
+    t = Target(url="http://h/login", method="POST", body_format="form",
+               params={"user": "", "pass": ""}, fixed={"csrf": "abc"})
+    kw = taint_target(t, "P")
+    if kw["method"] != "POST" or "csrf=abc" not in kw["payload"]:
+        raise AssertionError
+    if "user=P" not in kw["payload"] or "pass=P" not in kw["payload"]:
+        raise AssertionError
+
+
+def test_taint_target_get_form_preserves_csrf():
+    t = Target(url="http://h/s?q=&csrf=abc", method="GET",
+               params={"q": ""}, fixed={"csrf": "abc"})
+    kw = taint_target(t, "P")
+    if kw["method"] != "GET" or "q=P" not in kw["url"] or "csrf=abc" not in kw["url"]:
+        raise AssertionError
