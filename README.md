@@ -83,6 +83,7 @@ python -m sitadel --help
     - Cross Site Scripting (XSS)
     - Remote File Inclusion (RFI)
     - PHP Code Injection
+    - XML External Entity (XXE)
     - Server-Side Template Injection (SSTI)
     - Path Traversal / LFI
 

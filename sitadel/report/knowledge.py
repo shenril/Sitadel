@@ -211,6 +211,18 @@ KNOWLEDGE: dict[str, dict] = {
             "use an allow-list of filenames, and reject traversal sequences."
         ),
     },
+    "xxe": {
+        "severity": Severity.HIGH,
+        "confidence": "firm",
+        "cwe": "CWE-611",
+        "owasp": "A05:2021-Security Misconfiguration",
+        "wstg": "WSTG-INPV-07",
+        "remediation": (
+            "Disable DTD processing and external entity resolution in the XML "
+            "parser (disallow-doctype-decl / FEATURE_SECURE_PROCESSING); do not "
+            "resolve SYSTEM/PUBLIC entities, and prefer a hardened parser."
+        ),
+    },
     "jwt": {
         "severity": Severity.CRITICAL,
         "confidence": "firm",
