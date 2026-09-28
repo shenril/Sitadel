@@ -99,6 +99,7 @@ python -m sitadel --help
     - WebSocket Discovery & CSWSH
     - CORS Misconfiguration
     - Open Redirect
+    - Server-Side Request Forgery (SSRF)
 
   - Vulnerabilities
     - ShellShock

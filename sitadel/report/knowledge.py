@@ -223,6 +223,19 @@ KNOWLEDGE: dict[str, dict] = {
             "resolve SYSTEM/PUBLIC entities, and prefer a hardened parser."
         ),
     },
+    "ssrf": {
+        "severity": Severity.HIGH,
+        "confidence": "firm",
+        "cwe": "CWE-918",
+        "owasp": "A10:2021-Server-Side Request Forgery",
+        "wstg": "WSTG-INPV-19",
+        "remediation": (
+            "Do not fetch user-supplied URLs. Allow-list permitted hosts/schemes, "
+            "resolve and reject link-local/loopback/private ranges (incl. "
+            "169.254.169.254), disable unused URL schemes and redirects, and "
+            "isolate outbound fetches from cloud metadata."
+        ),
+    },
     "jwt": {
         "severity": Severity.CRITICAL,
         "confidence": "firm",
