@@ -100,6 +100,8 @@ python -m sitadel --help
     - CORS Misconfiguration
     - Open Redirect
     - Server-Side Request Forgery (SSRF)
+    - Exposed Sensitive Files
+    - Secret Leakage in Responses
 
   - Vulnerabilities
     - ShellShock

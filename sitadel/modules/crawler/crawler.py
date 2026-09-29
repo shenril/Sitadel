@@ -105,6 +105,10 @@ def _extract_links(base_url: str, html: str) -> list[str]:
     return links
 
 
+# Cap on retained page-body size (bytes) for the passive secret scan. Secrets
+# leak near the top of inline scripts/config; this bounds memory on large pages.
+_MAX_BODY = 512 * 1024
+
 # Input types that submit no user-controllable value (never injectable).
 _SKIP_INPUT_TYPES = {"submit", "button", "image", "reset"}
 
@@ -215,6 +219,9 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
     # Discovered HTML forms, de-duplicated by their shape (see form_signature).
     forms: list[Target] = []
     form_seen: set = set()
+    # Fetched page bodies (truncated), reused by the passive secret scanner so
+    # it need not re-fetch every crawled page.
+    bodies: dict[str, str] = {}
     _publish(PageDiscovered(start_url))
     queue: asyncio.Queue = asyncio.Queue()
     queue.put_nowait((start_url, 0))
@@ -241,6 +248,9 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
                     html = await _fetch(session, url, timeout)
                     if html is None:
                         continue
+                    # Retain the body (truncated) for the passive secret scan.
+                    if len(bodies) < max_pages:
+                        bodies[url] = html[:_MAX_BODY]
                     # Collect forms on every fetched page (leaves included), so
                     # a form at max depth is still discovered.
                     for target in _extract_forms(url, html, host):
@@ -277,13 +287,19 @@ async def _crawl(start_url: str, user_agent: str, cfg: dict) -> list[str]:
             task.cancel()
         await asyncio.gather(*workers, return_exceptions=True)
 
-    return sorted(results), forms
+    return sorted(results), forms, bodies
 
 
 def crawl(url, user_agent):
     output = Services.get("output")
     output.info("Start crawling the target website")
-    urls, form_targets = asyncio.run(_crawl(str(url), user_agent, _config()))
+    urls, form_targets, page_bodies = asyncio.run(
+        _crawl(str(url), user_agent, _config())
+    )
+    # Expose the fetched page bodies for the passive secret scanner (registered
+    # as a side effect like ``form_targets``, so re-fetching is unnecessary).
+    if page_bodies:
+        Services.register("page_bodies", page_bodies)
     # Register discovered forms as injectable targets, mirroring how API
     # discovery registers ``api_targets``; ``build_targets`` extends with them.
     # The public return stays ``list[str]`` so existing callers are unaffected.
