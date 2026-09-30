@@ -236,6 +236,30 @@ KNOWLEDGE: dict[str, dict] = {
             "isolate outbound fetches from cloud metadata."
         ),
     },
+    "exposed_file": {
+        "severity": Severity.HIGH,
+        "confidence": "firm",
+        "cwe": "CWE-538",
+        "owasp": "A05:2021-Security Misconfiguration",
+        "wstg": "WSTG-CONF-05",
+        "remediation": (
+            "Do not serve VCS metadata, dotfiles, config backups or key material "
+            "from the web root. Block access to .git/.svn/.env and *.bak/*.sql at "
+            "the server, and remove such artifacts from the deploy."
+        ),
+    },
+    "secret_leak": {
+        "severity": Severity.HIGH,
+        "confidence": "firm",
+        "cwe": "CWE-312",
+        "owasp": "A05:2021-Security Misconfiguration",
+        "wstg": "WSTG-CONF-05",
+        "remediation": (
+            "Never embed credentials/keys in served responses or client-side "
+            "code. Move secrets server-side, rotate any that were exposed, and "
+            "scan builds to keep secrets out of shipped assets."
+        ),
+    },
     "jwt": {
         "severity": Severity.CRITICAL,
         "confidence": "firm",
