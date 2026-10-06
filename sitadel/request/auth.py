@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import threading
 
-from selectolax.parser import HTMLParser
+from selectolax.lexbor import LexborHTMLParser
 
 
 class Authenticator:
@@ -64,7 +64,7 @@ class Authenticator:
             resp = session.get(self.login_url, verify=verify, timeout=timeout)
         except Exception:
             return {}
-        node = HTMLParser(resp.text).css_first(
+        node = LexborHTMLParser(resp.text).css_first(
             f'input[name="{self.csrf_field}"]'
         )
         if node is not None:
