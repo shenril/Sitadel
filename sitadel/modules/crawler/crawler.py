@@ -5,7 +5,7 @@ from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit
 
 import aiohttp
 from requests.utils import dict_from_cookiejar
-from selectolax.parser import HTMLParser
+from selectolax.lexbor import LexborHTMLParser
 
 from sitadel.config import settings
 from sitadel.modules.attacks.targets import Target
@@ -87,7 +87,7 @@ def url_signature(url: str, ignore_params=()) -> tuple:
 
 
 def _extract_links(base_url: str, html: str) -> list[str]:
-    tree = HTMLParser(html)
+    tree = LexborHTMLParser(html)
     base = base_url
     base_node = tree.css_first("base[href]")
     if base_node is not None:
@@ -122,7 +122,7 @@ def _extract_forms(base_url: str, html: str, host: str) -> list[Target]:
     forms become url-encoded body targets. Multipart / file-upload forms are
     skipped for now (the body encoder has no multipart support).
     """
-    tree = HTMLParser(html)
+    tree = LexborHTMLParser(html)
     base = base_url
     base_node = tree.css_first("base[href]")
     if base_node is not None:
