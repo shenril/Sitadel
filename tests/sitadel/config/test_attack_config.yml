@@ -11,7 +11,7 @@ risk: 1
 dns_resolver: 8.8.8.8
 
 ## Root location for the datafile used by the plugins
-datastore: lib/data
+datastore: sitadel/data
     
 ## List of attacks plugins activated
 attack_plugins:
