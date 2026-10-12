@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import threading
+import time
+from urllib.parse import urlsplit
+
 import urllib3
 from requests import ConnectionError, Request, RequestException, Session, Timeout
 from requests.adapters import HTTPAdapter
@@ -12,6 +16,33 @@ from . import ragent as ragent
 _POOL_SIZE = 20
 
 
+class _RateLimiter:
+    """Global request spacer: at most ``rate`` requests/second across all threads.
+
+    ``rate <= 0`` disables it (``acquire`` is a no-op), preserving full throughput.
+    Each caller reserves the next time slot under a short lock, then sleeps outside
+    the lock until the slot — so N worker threads are paced to one request every
+    ``1/rate`` seconds without serializing the lock during the wait.
+    """
+
+    def __init__(self, rate: float):
+        self.rate = float(rate or 0)
+        self._interval = 1.0 / self.rate if self.rate > 0 else 0.0
+        self._lock = threading.Lock()
+        self._next = 0.0
+
+    def acquire(self) -> None:
+        if self._interval <= 0:
+            return
+        with self._lock:
+            now = time.monotonic()
+            slot = max(self._next, now)
+            self._next = slot + self._interval
+        wait = slot - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+
+
 class SingleRequest:
     def __init__(
         self,
@@ -22,6 +53,8 @@ class SingleRequest:
         timeout: int | None = None,
         random_agent: bool = False,
         verify: bool = False,
+        rate_limit: float = 0.0,
+        scope_hosts: set | list | None = None,
     ):
         self.url = url
         self.agent = agent
@@ -33,6 +66,21 @@ class SingleRequest:
         # Optional authentication context (headers + a shared cookie jar).
         self.authenticator = None
 
+        # Global rate limiter shared by every request this factory sends.
+        self.rate_limit = float(rate_limit or 0)
+        self._limiter = _RateLimiter(self.rate_limit)
+
+        # In-scope hosts. Defaults to the target's host so probes (and followed
+        # redirects) never wander off-target; an empty set means "unrestricted"
+        # (used by direct, url-less construction in tests). Explicit extra hosts
+        # are added for multi-host targets.
+        hosts = {h.lower() for h in (scope_hosts or []) if h}
+        if url:
+            target_host = urlsplit(url).hostname
+            if target_host:
+                hosts.add(target_host.lower())
+        self.scope_hosts = hosts
+
         # Reuse one pooled session (keep-alive) across every request instead of
         # opening a fresh TCP/TLS connection per call.
         self.session = Session()
@@ -41,6 +89,15 @@ class SingleRequest:
         self.session.mount("https://", adapter)
         if not self.verify:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    def _in_scope(self, url: str) -> bool:
+        """Whether ``url``'s host is in scope. Empty scope => unrestricted."""
+        if not self.scope_hosts:
+            return True
+        host = (urlsplit(url).hostname or "").lower()
+        # No parseable host (relative/opaque) is treated as in-scope — it can
+        # only resolve against the in-scope base.
+        return (host in self.scope_hosts) if host else True
 
     def set_authenticator(self, authenticator):
         self.authenticator = authenticator
@@ -58,6 +115,12 @@ class SingleRequest:
         # callers pass ``False`` to inspect a redirect (e.g. the open-redirect
         # check reads the Location header without following it off-site).
         follow = self.redirect if allow_redirects is None else allow_redirects
+        # Scope gate: never initiate a request to an out-of-scope host (the
+        # destination is what matters — an SSRF/open-redirect payload points
+        # inward but the request itself still targets the in-scope host).
+        if not self._in_scope(url):
+            output.debug("Skipping out-of-scope request: %s" % url)
+            return None
         prepped = self.prepare_request(url, method, payload, headers, cookies)
         # File-only trace of every request the scan makes. Since all attack
         # modules send their probes through here, this records exactly which
@@ -66,6 +129,8 @@ class SingleRequest:
             "REQUEST %s %s%s"
             % (method.upper(), url, f" data={payload}" if payload else "")
         )
+        # Honor the global rate limit (no-op when unset) before going on the wire.
+        self._limiter.acquire()
         try:
             resp = self.session.send(
                 prepped,
@@ -74,6 +139,11 @@ class SingleRequest:
                 allow_redirects=follow,
                 verify=self.verify,
             )
+            # A redirect chain may have landed off-scope; never let off-host
+            # content feed detection — discard it like a skipped request.
+            if resp is not None and self.scope_hosts and not self._in_scope(resp.url):
+                output.debug("Discarding out-of-scope redirect to %s" % resp.url)
+                return None
             # If the session dropped (login page returned), re-authenticate once
             # and retry so a mid-scan session expiry doesn't silently degrade to
             # unauthenticated requests.
