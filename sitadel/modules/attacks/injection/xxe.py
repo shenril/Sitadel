@@ -12,7 +12,6 @@ v1 is **in-band only**: it detects XXE whose resolved file contents are echoed
 back in the response. Blind XXE (out-of-band external DTD) is intentionally out
 of scope, and no entity-expansion/DoS payloads are ever sent.
 """
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from sitadel.config.settings import Risk
 from sitadel.utils.container import Services
@@ -98,14 +97,4 @@ class Xxe(AttackPlugin):
                 logger.error(e)
                 output.debug("XXE error on %s: %s" % (target.url, e))
 
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(scan, t) for t in targets]
-            try:
-                for future in as_completed(futures):
-                    if self._cancelled():
-                        executor.shutdown(cancel_futures=True)
-                        break
-                    future.result()
-            except KeyboardInterrupt:
-                executor.shutdown(False)
-                raise
+        self.run_pool(targets, scan)

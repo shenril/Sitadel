@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import threading
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from urllib.parse import urlsplit, urlunsplit
@@ -78,23 +79,28 @@ class Findings:
     def __init__(self):
         self._items: list[Finding] = []
         self._index: dict[tuple[str, str, str], Finding] = {}
+        # The attack phase adds findings from many threads at once (concurrent
+        # modules on a shared pool), so the dedup must be atomic.
+        self._lock = threading.Lock()
 
     def add(self, finding: Finding) -> None:
         sig = _signature(finding)
-        existing = self._index.get(sig)
-        if existing is not None:
-            existing.occurrences += 1
-            # Keep a bounded trail of the distinct URLs the issue was seen on.
-            is_new_url = bool(finding.url) and finding.url != existing.url
-            if is_new_url and finding.url not in existing.other_urls:
-                if len(existing.other_urls) < 20:
-                    existing.other_urls.append(finding.url)
-            return
-        self._index[sig] = finding
-        self._items.append(finding)
+        with self._lock:
+            existing = self._index.get(sig)
+            if existing is not None:
+                existing.occurrences += 1
+                # Keep a bounded trail of the distinct URLs the issue was seen on.
+                is_new_url = bool(finding.url) and finding.url != existing.url
+                if is_new_url and finding.url not in existing.other_urls:
+                    if len(existing.other_urls) < 20:
+                        existing.other_urls.append(finding.url)
+                return
+            self._index[sig] = finding
+            self._items.append(finding)
 
     def all(self) -> list[Finding]:
-        return list(self._items)
+        with self._lock:
+            return list(self._items)
 
     def __len__(self) -> int:
         return len(self._items)

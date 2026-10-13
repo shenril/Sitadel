@@ -1,6 +1,7 @@
 import importlib
 import os
 import pkgutil
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import parse_qsl, urlsplit
 
@@ -32,6 +33,29 @@ def _cancelled() -> bool:
         return Services.get("cancel").is_set()
     except NameError:
         return False
+
+
+def _scan_pool():
+    """The scan-wide executor shared by every module, or ``None`` when none is
+    registered (standalone module use / tests fall back to a local pool)."""
+    try:
+        return Services.get("scan_pool")
+    except NameError:
+        return None
+
+
+def _scan_workers() -> int:
+    """Shared attack-pool size: the CLI/config value (registered by the CLI),
+    else the config ``http.workers``, else 20 (aligned with the HTTP pool)."""
+    try:
+        return int(Services.get("scan_workers"))
+    except (NameError, TypeError, ValueError):
+        pass
+    http_cfg = getattr(settings, "http", None) or {}
+    try:
+        return int(http_cfg.get("workers", 20))
+    except (TypeError, ValueError):
+        return 20
 
 __all__ = ["AttackPlugin", "Attacks", "Target", "taint_body", "taint_target"]
 
@@ -107,6 +131,42 @@ class AttackPlugin(metaclass=IPlugin):
             targets.extend(form_targets)
         return targets
 
+    def run_pool(self, items, worker, workers=20):
+        """Run ``worker(item)`` for each item concurrently, honoring cancel.
+
+        Submits to the scan-wide shared executor (``Services["scan_pool"]``) when
+        one is registered — so independent modules overlap on a single bounded
+        pool instead of each spinning up its own — and otherwise falls back to a
+        private pool (standalone use / tests). Cooperative cancellation drops not
+        yet-started work; ``KeyboardInterrupt`` propagates. This is the single
+        pool loop every attack module shares (injection, bruteforce, and the
+        bespoke ``other``/``injection`` checks).
+        """
+        items = list(items)
+        if not items:
+            return
+        shared = _scan_pool()
+        executor = shared or ThreadPoolExecutor(max_workers=workers)
+        try:
+            futures = [executor.submit(worker, item) for item in items]
+            try:
+                for future in as_completed(futures):
+                    if _cancelled():
+                        # Drop queued probes (shared pool: only ours); in-flight
+                        # ones finish on their own and re-check cancel themselves.
+                        for pending in futures:
+                            pending.cancel()
+                        break
+                    future.result()
+            except KeyboardInterrupt:
+                for pending in futures:
+                    pending.cancel()
+                raise
+        finally:
+            # Never shut down the shared pool here — it is owned by Attacks.run.
+            if shared is None:
+                executor.shutdown(wait=True)
+
     def run_injection(self, payloads, crawled_urls, detector, workers=20):
         """Test ``payloads`` against every injectable target with one pool.
 
@@ -162,22 +222,12 @@ class AttackPlugin(metaclass=IPlugin):
                 logger.error(err)
                 output.debug("Injection error: %s" % err)
 
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = [
-                executor.submit(probe, payload, target)
-                for payload in payloads
-                for target in targets
-            ]
-            try:
-                for future in as_completed(futures):
-                    if _cancelled():
-                        # Drop queued probes; in-flight ones finish on their own.
-                        executor.shutdown(cancel_futures=True)
-                        break
-                    future.result()
-            except KeyboardInterrupt:
-                executor.shutdown(False)
-                raise
+        # One probe per (payload, target), run on the shared scan pool.
+        self.run_pool(
+            [(payload, target) for payload in payloads for target in targets],
+            lambda pt: probe(*pt),
+            workers=workers,
+        )
 
     @staticmethod
     def tainted_params(url):
@@ -243,13 +293,10 @@ class Attacks:
             # iterate targets still move the bar.
             unit = max(len(AttackPlugin.build_targets(self.crawled_urls)), 1)
             _publish(ProgressTotal(len(selected) * unit))
-            attacks = []
-            for i, instance in enumerate(selected):
-                if _cancelled():
-                    break
-                result = instance.process(self.start_url, self.crawled_urls)
-                attacks.append((instance, result))
-                _publish(ProgressSnap((i + 1) * unit))
+            if selected:
+                attacks = self._run_concurrently(selected, unit)
+            else:
+                attacks = []
             for category, result in attacks:
                 if result is not None:
                     self.output.finding(
@@ -261,3 +308,56 @@ class Attacks:
         except Exception as e:
             self.logger.error(e)
             raise e
+
+    def _run_concurrently(self, selected, unit):
+        """Run the selected modules' ``process()`` concurrently.
+
+        Two tiers avoid a self-submitting-pool deadlock: a shared bounded
+        ``scan_pool`` runs the actual HTTP probes (every module submits onto it
+        via ``run_pool``), while a separate, small *driver* pool runs the module
+        ``process()`` methods — driver threads only orchestrate and block on the
+        shared pool's futures, so they are never workers of the pool they submit
+        to. Probe parallelism is capped by ``scan_pool`` and the request rate by
+        the request-layer limiter; progress is snapped per completed module with
+        an atomic counter so the bar stays monotonic regardless of finish order.
+        """
+        workers = _scan_workers()
+        pool = ThreadPoolExecutor(max_workers=workers)
+        Services.register("scan_pool", pool)
+        results = []
+        results_lock = threading.Lock()
+        done_lock = threading.Lock()
+        done = 0
+
+        def drive(instance):
+            nonlocal done
+            try:
+                if _cancelled():
+                    return
+                result = instance.process(self.start_url, self.crawled_urls)
+                with results_lock:
+                    results.append((instance, result))
+            finally:
+                with done_lock:
+                    done += 1
+                    _publish(ProgressSnap(done * unit))
+
+        driver = ThreadPoolExecutor(max_workers=max(len(selected), 1))
+        try:
+            futures = [driver.submit(drive, inst) for inst in selected]
+            try:
+                for future in as_completed(futures):
+                    if _cancelled():
+                        for pending in futures:
+                            pending.cancel()
+                        break
+                    future.result()
+            except KeyboardInterrupt:
+                for pending in futures:
+                    pending.cancel()
+                raise
+        finally:
+            driver.shutdown(wait=True)
+            pool.shutdown(wait=True)
+            Services.services.pop("scan_pool", None)
+        return results

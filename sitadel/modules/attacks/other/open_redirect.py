@@ -9,7 +9,6 @@ attacker-controlled destinations.
 Bespoke (not ``run_injection``) so it can send no-follow and taint only
 redirect-style parameters, which bounds requests and cuts false positives.
 """
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sitadel.config.settings import Risk
@@ -108,14 +107,4 @@ class OpenRedirect(AttackPlugin):
                 logger.error(e)
                 output.debug("Open-redirect error on %s: %s" % (url, e))
 
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(scan, url) for url in targets]
-            try:
-                for future in as_completed(futures):
-                    if self._cancelled():
-                        executor.shutdown(cancel_futures=True)
-                        break
-                    future.result()
-            except KeyboardInterrupt:
-                executor.shutdown(False)
-                raise
+        self.run_pool(targets, scan)

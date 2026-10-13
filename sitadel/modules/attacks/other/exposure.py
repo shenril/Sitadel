@@ -9,7 +9,6 @@ specific signature — only when the site is shown to serve real 404s and the fi
 returns distinct 200 content.
 """
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from sitadel.config.settings import Risk
@@ -129,14 +128,4 @@ class Exposure(AttackPlugin):
                 logger.error(e)
                 output.debug("Exposure error on %s: %s" % (path, e))
 
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(scan, p) for p in paths]
-            try:
-                for future in as_completed(futures):
-                    if self._cancelled():
-                        executor.shutdown(cancel_futures=True)
-                        break
-                    future.result()
-            except KeyboardInterrupt:
-                executor.shutdown(False)
-                raise
+        self.run_pool(paths, scan)
