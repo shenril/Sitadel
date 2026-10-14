@@ -13,6 +13,14 @@ dns_resolver: 8.8.8.8
 ## Root location for the datafile used by the plugins
 datastore: sitadel/data
 
+## HTTP request tuning (attack phase)
+## rate_limit: max requests/second across the whole scan (0 = unlimited).
+## scope_hosts: extra hosts allowed besides the target (requests/redirects to
+## any other host are skipped). The target host is always in scope.
+http:
+  rate_limit: 0
+  scope_hosts: []
+
 ## Crawler tuning
 ## URLs are de-duplicated by their parameter signature (scheme, host, path and the
 ## set of parameter names), so value permutations like ?id=1 / ?id=2 collapse to a

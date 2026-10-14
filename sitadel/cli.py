@@ -91,6 +91,21 @@ class Sitadel(object):
             action="store_true",
             help="Verify the server's TLS certificate (off by default)",
         )
+        parser.add_argument(
+            "--rate-limit",
+            dest="rate_limit",
+            type=float,
+            default=None,
+            help="Max requests per second across the whole scan "
+                 "(0 = unlimited; overrides http.rate_limit in the config)",
+        )
+        parser.add_argument(
+            "--scope-host",
+            dest="scope_hosts",
+            action="append",
+            help="Extra in-scope host to allow requests to (repeatable); the "
+                 "target host is always in scope",
+        )
         # Authentication options
         parser.add_argument(
             "--auth-basic", help="HTTP Basic credentials as user:password"
@@ -223,6 +238,17 @@ class Sitadel(object):
         # Setting up the logger
         logger = setup_logging(args.verbosity)
 
+        # HTTP tuning: CLI flags win, else the config's optional ``http`` block,
+        # else safe defaults (unlimited rate; scope restricted to the target).
+        http_cfg = getattr(settings, "http", None) or {}
+        rate_limit = (
+            args.rate_limit if args.rate_limit is not None
+            else http_cfg.get("rate_limit", 0)
+        )
+        scope_hosts = list(http_cfg.get("scope_hosts", []) or [])
+        if args.scope_hosts:
+            scope_hosts.extend(args.scope_hosts)
+
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
         Services.register("logger", logger)
@@ -239,6 +265,8 @@ class Sitadel(object):
                 timeout=args.timeout,
                 random_agent=args.random_agent,
                 verify=args.verify,
+                rate_limit=rate_limit,
+                scope_hosts=scope_hosts,
             ),
         )
 
