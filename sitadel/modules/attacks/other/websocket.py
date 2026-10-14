@@ -16,7 +16,6 @@ URL whose path hints at a WebSocket surface — bounded, per the single-target m
 import random
 import re
 import string
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from sitadel.config import settings
@@ -192,17 +191,7 @@ class WebSocket(AttackPlugin):
                 logger.error(e)
                 output.debug("WebSocket probe error on %s: %s" % (url, e))
 
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(scan, url) for url in candidates]
-            try:
-                for future in as_completed(futures):
-                    if self._cancelled():
-                        executor.shutdown(cancel_futures=True)
-                        break
-                    future.result()
-            except KeyboardInterrupt:
-                executor.shutdown(False)
-                raise
+        self.run_pool(candidates, scan)
 
         # Active message-liveness test only at the DANGEROUS risk level.
         if settings.risk >= Risk.DANGEROUS:

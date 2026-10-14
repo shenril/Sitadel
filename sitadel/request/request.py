@@ -55,6 +55,7 @@ class SingleRequest:
         verify: bool = False,
         rate_limit: float = 0.0,
         scope_hosts: set | list | None = None,
+        pool_size: int = _POOL_SIZE,
     ):
         self.url = url
         self.agent = agent
@@ -84,7 +85,10 @@ class SingleRequest:
         # Reuse one pooled session (keep-alive) across every request instead of
         # opening a fresh TCP/TLS connection per call.
         self.session = Session()
-        adapter = HTTPAdapter(pool_connections=_POOL_SIZE, pool_maxsize=_POOL_SIZE)
+        # Keep the connection pool aligned with the shared attack-pool size so
+        # concurrent workers don't thrash a too-small pool.
+        pool_size = max(int(pool_size or _POOL_SIZE), 1)
+        adapter = HTTPAdapter(pool_connections=pool_size, pool_maxsize=pool_size)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
         if not self.verify:

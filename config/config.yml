@@ -18,8 +18,9 @@ datastore: sitadel/data
 ## scope_hosts: extra hosts allowed besides the target (requests/redirects to
 ## any other host are skipped). The target host is always in scope.
 http:
-  rate_limit: 0
-  scope_hosts: []
+  rate_limit: 0        # max requests/second across the scan (0 = unlimited)
+  scope_hosts: []      # extra in-scope hosts besides the target
+  workers: 20          # shared attack-phase worker pool (sizes the HTTP pool too)
 
 ## Crawler tuning
 ## URLs are de-duplicated by their parameter signature (scheme, host, path and the

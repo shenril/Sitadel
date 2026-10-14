@@ -1,5 +1,4 @@
 from urllib.parse import urljoin
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from sitadel.utils.container import Services
 from .. import AttackPlugin
 
@@ -34,11 +33,4 @@ class Bfile(AttackPlugin):
                 bdir = b.replace("[name]", d)
                 urls.append(urljoin(str(start_url), str(bdir)))
         # Bounded thread pool so the wordlist is probed concurrently.
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(self.check_url, url) for url in urls]
-            try:
-                for future in as_completed(futures):
-                    future.result()
-            except KeyboardInterrupt:
-                executor.shutdown(False)
-                raise
+        self.run_pool(urls, self.check_url)

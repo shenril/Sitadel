@@ -106,6 +106,14 @@ class Sitadel(object):
             help="Extra in-scope host to allow requests to (repeatable); the "
                  "target host is always in scope",
         )
+        parser.add_argument(
+            "--workers",
+            dest="workers",
+            type=int,
+            default=None,
+            help="Shared attack-phase worker pool size (overrides http.workers; "
+                 "the HTTP connection pool is sized to match)",
+        )
         # Authentication options
         parser.add_argument(
             "--auth-basic", help="HTTP Basic credentials as user:password"
@@ -248,6 +256,14 @@ class Sitadel(object):
         scope_hosts = list(http_cfg.get("scope_hosts", []) or [])
         if args.scope_hosts:
             scope_hosts.extend(args.scope_hosts)
+        workers = (
+            args.workers if args.workers is not None
+            else int(http_cfg.get("workers", 20) or 20)
+        )
+        workers = max(workers, 1)
+        # The attack runner reads this for the shared scan pool; the HTTP adapter
+        # below is sized to match so the connection pool never bottlenecks it.
+        Services.register("scan_workers", workers)
 
         # Register services
         Services.register("datastore", Datastore(settings.datastore))
@@ -267,6 +283,7 @@ class Sitadel(object):
                 verify=args.verify,
                 rate_limit=rate_limit,
                 scope_hosts=scope_hosts,
+                pool_size=workers,
             ),
         )
 
